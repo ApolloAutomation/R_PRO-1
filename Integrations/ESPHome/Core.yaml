@@ -1,5 +1,5 @@
 substitutions:
-  version: "25.5.9.1"
+  version: "25.5.16.1"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -80,6 +80,10 @@ ld2450:
   throttle: 500ms
 
 button:
+  - platform: restart
+    icon: mdi:power-cycle
+    name: "ESP Reboot"
+    
   - platform: LD2412
     factory_reset:
       name: "LD2412 Factory Reset"
