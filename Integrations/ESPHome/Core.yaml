@@ -1,5 +1,5 @@
 substitutions:
-  version: "25.6.25.1"
+  version: "25.6.29.1"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -323,6 +323,18 @@ number:
         id: ld2412_g13_still_threshold
 
 binary_sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    has_target:
+      id: has_target_bs
+      name: Presence
+    has_moving_target:
+      id: has_moving_target_bs
+      name: Moving Target
+    has_still_target:
+      id: has_still_target_bs
+      name: Still Target
+
   - platform: status
     name: Online
     id: ink_ha_connected
