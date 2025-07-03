@@ -1,5 +1,5 @@
 substitutions:
-  version: "25.6.18.1"
+  version: "25.7.3.1"
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -394,8 +394,7 @@ sensor:
       id: scd40_humidity
       disabled_by_default: true
       filters:
-        - lambda: return x - id(scd40_humidity_offset).state;  
-    automatic_self_calibration: false
+        - lambda: return x - id(scd40_humidity_offset).state;
     update_interval: 60s
     measurement_mode: "periodic"
     i2c_id: bus_a
@@ -694,6 +693,19 @@ switch:
     optimistic: true
     entity_category: "config"
 
+  - platform: template
+    name: "SCD40 Automatic Self Calibration"
+    id: scd40_auto_self_calibration
+    icon: mdi:tune
+    restore_mode: RESTORE_DEFAULT_ON
+    disabled_by_default: true
+    optimistic: true
+    entity_category: "config"
+    on_turn_on:
+      - lambda: 'id(scd40).set_automatic_self_calibration(true);'
+    on_turn_off:
+      - lambda: 'id(scd40).set_automatic_self_calibration(false);'
+
 text_sensor:
   - platform: ld2450
     ld2450_id: ld2450_radar
@@ -775,6 +787,7 @@ script:
         then:
           - lambda: "id(runTest) = false;"
           - lambda: "id(testCycleCount) = 0;"
+          - delay: 2s
           - while:
               condition:
                 - lambda: "return id(testCycleCount) < 5;"
