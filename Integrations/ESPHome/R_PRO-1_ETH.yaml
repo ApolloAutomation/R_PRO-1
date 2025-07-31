@@ -12,6 +12,23 @@ esphome:
     version: ${version}
 
   min_version: 2024.6.4
+  on_boot:
+    - priority: 800
+      then:
+        - if:
+            condition:
+              - lambda: "return id(runTest);"
+            then:
+              - lambda: "id(testScript).execute();"
+        # Check and apply SCD40 auto self-calibration setting
+        - lambda: |-
+            if (id(scd40_auto_self_calibration).state) {
+              id(scd40).set_automatic_self_calibration(true);
+              ESP_LOGI("scd40", "Automatic self-calibration enabled on boot");
+            } else {
+              id(scd40).set_automatic_self_calibration(false);
+              ESP_LOGI("scd40", "Automatic self-calibration disabled on boot");
+            }
   
 dashboard_import:
   package_import_url: github://ApolloAutomation/R_PRO-1/Integrations/ESPHome/R_PRO-1_ETH.yaml
