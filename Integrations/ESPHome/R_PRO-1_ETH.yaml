@@ -1,6 +1,6 @@
 
 esphome:
-  name: "apollo-r-pro-1-w"
+  name: "apollo-r-pro-1-eth"
   friendly_name: Apollo R_PRO-1
   comment: Apollo R_PRO-1
   name_add_mac_suffix: true
@@ -8,22 +8,31 @@ esphome:
     board_build.flash_mode: dio
 
   project:
-    name: "ApolloAutomation.R-PRO-1-W"
+    name: "ApolloAutomation.R-PRO-1-ETH"
     version: ${version}
 
   min_version: 2024.6.4
-
   on_boot:
-  - priority: -10
-    then:
-      - if:
-          condition:
-            - lambda: "return id(runTest);"
-          then:
-            - lambda: "id(testScript).execute();"
+
+    - priority: 800
+      then:
+        - if:
+            condition:
+              - lambda: "return id(runTest);"
+            then:
+              - lambda: "id(testScript).execute();"
+        # Check and apply SCD40 auto self-calibration setting
+        - lambda: |-
+            if (id(scd40_auto_self_calibration).state) {
+              id(scd40).set_automatic_self_calibration(true);
+              ESP_LOGI("scd40", "Automatic self-calibration enabled on boot");
+            } else {
+              id(scd40).set_automatic_self_calibration(false);
+              ESP_LOGI("scd40", "Automatic self-calibration disabled on boot");
+            }
   
 dashboard_import:
-  package_import_url: github://ApolloAutomation/R_PRO-1/Integrations/ESPHome/RPRO-1_W.yaml
+  package_import_url: github://ApolloAutomation/R_PRO-1/Integrations/ESPHome/R_PRO-1_ETH.yaml
   import_full_config: false
 
 ota:
@@ -37,33 +46,22 @@ http_request:
 
 safe_mode:
 
-improv_serial:
-
-esp32_improv:
-  authorizer: none
-
-web_server:
-  port: 80
-
 update:
   - platform: http_request
     id: update_http_request
     name: Firmware Update
-    source: https://apolloautomation.github.io/R_PRO-1/firmware-w/manifest.json
+    source: https://apolloautomation.github.io/R_PRO-1/firmware-e/manifest.json
 
 logger:
 
-wifi:
-  id: wifi_1
-  on_connect:
-    - delay: 5s
-    - ble.disable:
-  on_disconnect:
-    - ble.enable:
-  ap:
-    ssid: "Apollo R PRO 1 Hotspot"
-
-captive_portal:
+ethernet:  
+  type: W5500  
+  clk_pin: GPIO10  
+  mosi_pin: GPIO12 
+  miso_pin: GPIO11
+  cs_pin: GPIO9
+  interrupt_pin: GPIO13
+  reset_pin: GPIO14
 
 select:
   - platform: template
@@ -76,7 +74,7 @@ select:
     options:
       - "WiFi"
       - "Ethernet"
-    initial_option: "WiFi"
+    initial_option: "Ethernet"
     on_value:
       then:
         - if:

@@ -8,12 +8,6 @@ esp32:
   framework:
     type: esp-idf
 
-external_components:
-  - source:
-      type: git
-      url: https://github.com/ApolloAutomation/LD2412
-      ref: main
-    components: [LD2412]
 api:
   services:
     - service: play_buzzer
@@ -70,13 +64,13 @@ i2c:
   id: bus_a
 
 uart:
-  - id: uart_bus
+  - id: uart_ld2412
     tx_pin: GPIO43
     rx_pin: GPIO44
     baud_rate: 115200
     parity: NONE
     stop_bits: 1
-  - id: uart_bus2
+  - id: uart_ld2450
     tx_pin: GPIO17
     rx_pin: GPIO18
     baud_rate: 256000
@@ -88,28 +82,32 @@ output:
     pin: GPIO8
     id: buzzer
 
-LD2412:
-  id: ld2412
-  uart_id: uart_bus
+ld2412:
+  id: ld2412_radar
+  uart_id: uart_ld2412
+
 ld2450:
   id: ld2450_radar
-  uart_id: uart_bus2
+  uart_id: uart_ld2450
 
 button:
   - platform: restart
     icon: mdi:power-cycle
     name: "ESP Reboot"
     
-  - platform: LD2412
+  - platform: ld2412
     factory_reset:
       name: "LD2412 Factory Reset"
       id: ld2412_factory_reset_btn
+    query_params:
+      name: "LD2412 Query params"
+      id: ld2412_query_params_btn
     restart:
       name: "LD2412 Restart"
       id: ld2412_restart_btn
-    query_params:
-      name: LD2412 Query params
-      id: ld2412_query_params_btn
+    start_dynamic_background_correction:
+      name: "LD2412 Start Dynamic Background Correction"
+      id: ld2412_start_dynamic_background_correction_btn
   - platform: ld2450
     ld2450_id: ld2450_radar
     factory_reset:
@@ -125,7 +123,7 @@ button:
       - scd4x.perform_forced_calibration:
           value: 420
           id: scd40
-    disabled_by_default: true
+    disabled_by_default: false
 
   - platform: template
     name: "Firmware Update"
@@ -211,7 +209,11 @@ number:
     mode: box
     disabled_by_default: true
 
-  - platform: LD2412
+  - platform: ld2412
+    light_threshold:
+      name: "LD2412 Light Threshold"
+      id: ld2412_light_threshold
+      disabled_by_default: true
     timeout:
       name: "LD2412 Timeout"
       id: ld2412_timeout
@@ -221,98 +223,98 @@ number:
     max_distance_gate:
       name: "LD2412 max distance gate"
       id: ld2412_max_distance_gate
-    g0:
+    gate_0:
       move_threshold:
         name: LD2412 g00 move threshold
         id: ld2412_g00_move_threshold
       still_threshold:
         name: LD2412 g00 still threshold
         id: ld2412_g00_still_threshold
-    g1:
+    gate_1:
       move_threshold:
         name: LD2412 g01 move threshold
         id: ld2412_g01_move_threshold
       still_threshold:
         name: LD2412 g01 still threshold
         id: ld2412_g01_still_threshold
-    g2:
+    gate_2:
       move_threshold:
         name: LD2412 g02 move threshold
         id: ld2412_g02_move_threshold
       still_threshold:
         name: LD2412 g02 still threshold
         id: ld2412_g02_still_threshold
-    g3:
+    gate_3:
       move_threshold:
         name: LD2412 g03 move threshold
         id: ld2412_g03_move_threshold
       still_threshold:
         name: LD2412 g03 still threshold
         id: ld2412_g03_still_threshold
-    g4:
+    gate_4:
       move_threshold:
         name: LD2412 g04 move threshold
         id: ld2412_g04_move_threshold
       still_threshold:
         name: LD2412 g04 still threshold
         id: ld2412_g04_still_threshold
-    g5:
+    gate_5:
       move_threshold:
         name: LD2412 g05 move threshold
         id: ld2412_g05_move_threshold
       still_threshold:
         name: LD2412 g05 still threshold
         id: ld2412_g05_still_threshold
-    g6:
+    gate_6:
       move_threshold:
         name: LD2412 g06 move threshold
         id: ld2412_g06_move_threshold
       still_threshold:
         name: LD2412 g06 still threshold
         id: ld2412_g06_still_threshold
-    g7:
+    gate_7:
       move_threshold:
         name: LD2412 g07 move threshold
         id: ld2412_g07_move_threshold
       still_threshold:
         name: LD2412 g07 still threshold
         id: ld2412_g07_still_threshold
-    g8:
+    gate_8:
       move_threshold:
         name: LD2412 g08 move threshold
         id: ld2412_g08_move_threshold
       still_threshold:
         name: LD2412 g08 still threshold
         id: ld2412_g08_still_threshold
-    g9:
+    gate_9:
       move_threshold:
         name: LD2412 g09 move threshold
         id: ld2412_g09_move_threshold
       still_threshold:
         name: LD2412 g09 still threshold
         id: ld2412_g09_still_threshold
-    g10:
+    gate_10:
       move_threshold:
         name: LD2412 g10 move threshold
         id: ld2412_g10_move_threshold
       still_threshold:
         name: LD2412 g10 still threshold
         id: ld2412_g10_still_threshold
-    g11:
+    gate_11:
       move_threshold:
         name: LD2412 g11 move threshold
         id: ld2412_g11_move_threshold
       still_threshold:
         name: LD2412 g11 still threshold
         id: ld2412_g11_still_threshold
-    g12:
+    gate_12:
       move_threshold:
         name: LD2412 g12 move threshold
         id: ld2412_g12_move_threshold
       still_threshold:
         name: LD2412 g12 still threshold
         id: ld2412_g12_still_threshold
-    g13:
+    gate_13:
       move_threshold:
         name: LD2412 g13 move threshold
         id: ld2412_g13_move_threshold
@@ -321,6 +323,18 @@ number:
         id: ld2412_g13_still_threshold
 
 binary_sensor:
+  - platform: ld2450
+    ld2450_id: ld2450_radar
+    has_target:
+      id: has_target_bs
+      name: Presence
+    has_moving_target:
+      id: has_moving_target_bs
+      name: Moving Target
+    has_still_target:
+      id: has_still_target_bs
+      name: Still Target
+
   - platform: status
     name: Online
     id: ink_ha_connected
@@ -338,7 +352,6 @@ binary_sensor:
       then:
         - lambda: |-
             id(button_press_timestamp) = millis();
-
     on_release:
       then:
         - lambda: |-
@@ -353,15 +366,23 @@ binary_sensor:
               id(runTest) = true;
               id(testScript).execute();
             }
-  - platform: LD2412
+  - platform: gpio
+    name: "LD2412 Out Pin"
+    pin: GPIO38
+    id: ld2412_out_pin
+    disabled_by_default: true
+  - platform: ld2412
+    dynamic_background_correction_status:
+      name: "LD2412 Dynamic Background Correction Status"
+      id: ld2412_dynamic_background_correction_status
     has_target:
-      name: LD2412 Presence
+      name: "LD2412 Presence"
       id: ld2412_presence
     has_moving_target:
-      name: LD2412 Moving Target
+      name: "LD2412 Moving Target"
       id: ld2412_moving_target
     has_still_target:
-      name: LD2412 Still Target
+      name: "LD2412 Still Target"
       id: ld2412_still_target
 
 sensor:
@@ -380,7 +401,7 @@ sensor:
     co2:
       name: "CO2"
       id: "co2"
-      disabled_by_default: true
+      disabled_by_default: false
     temperature:
       name: "SCD40 Temperature"
       id: scd40_temperature
@@ -392,8 +413,7 @@ sensor:
       id: scd40_humidity
       disabled_by_default: true
       filters:
-        - lambda: return x - id(scd40_humidity_offset).state;  
-    automatic_self_calibration: false
+        - lambda: return x - id(scd40_humidity_offset).state;
     update_interval: 60s
     measurement_mode: "periodic"
     i2c_id: bus_a
@@ -570,9 +590,13 @@ sensor:
         filters:
           - throttle: 500ms
 
-  - platform: LD2412
+  - platform: ld2412
+    light:
+      name: LD2412 Light
+      id: ld2412_light
+      disabled_by_default: true
     moving_distance:
-      name : LD2412 Moving Distance
+      name: LD2412 Moving Distance
       id: ld2412_moving_distance
       disabled_by_default: true
       filters:
@@ -601,7 +625,7 @@ sensor:
       disabled_by_default: true
       filters:
         - throttle: 500ms
-    g0:
+    gate_0:
       move_energy:
         name: LD2412 g00 move energy
         id: ld2412_g00_move_energy
@@ -612,7 +636,8 @@ sensor:
         id: ld2412_g00_still_energy
         filters:
           - throttle: 500ms
-    g1:
+
+    gate_1:
       move_energy:
         name: LD2412 g01 move energy
         id: ld2412_g01_move_energy
@@ -623,7 +648,7 @@ sensor:
         id: ld2412_g01_still_energy
         filters:
           - throttle: 500ms
-    g2:
+    gate_2:
       move_energy:
         name: LD2412 g02 move energy
         id: ld2412_g02_move_energy
@@ -634,7 +659,7 @@ sensor:
         id: ld2412_g02_still_energy
         filters:
           - throttle: 500ms
-    g3:
+    gate_3:
       move_energy:
         name: LD2412 g03 move energy
         id: ld2412_g03_move_energy
@@ -645,7 +670,7 @@ sensor:
         id: ld2412_g03_still_energy
         filters:
           - throttle: 500ms
-    g4:
+    gate_4:
       move_energy:
         name: LD2412 g04 move energy
         id: ld2412_g04_move_energy
@@ -656,7 +681,7 @@ sensor:
         id: ld2412_g04_still_energy
         filters:
           - throttle: 500ms
-    g5:
+    gate_5:
       move_energy:
         name: LD2412 g05 move energy
         id: ld2412_g05_move_energy
@@ -667,7 +692,7 @@ sensor:
         id: ld2412_g05_still_energy
         filters:
           - throttle: 500ms
-    g6:
+    gate_6:
       move_energy:
         name: LD2412 g06 move energy
         id: ld2412_g06_move_energy
@@ -678,7 +703,7 @@ sensor:
         id: ld2412_g06_still_energy
         filters:
           - throttle: 500ms
-    g7:
+    gate_7:
       move_energy:
         name: LD2412 g07 move energy
         id: ld2412_g07_move_energy
@@ -689,7 +714,7 @@ sensor:
         id: ld2412_g07_still_energy
         filters:
           - throttle: 500ms
-    g8:
+    gate_8:
       move_energy:
         name: LD2412 g08 move energy
         id: ld2412_g08_move_energy
@@ -700,7 +725,7 @@ sensor:
         id: ld2412_g08_still_energy
         filters:
           - throttle: 500ms
-    g9:
+    gate_9:
       move_energy:
         name: LD2412 g09 move energy
         id: ld2412_g09_move_energy
@@ -711,7 +736,7 @@ sensor:
         id: ld2412_g09_still_energy
         filters:
           - throttle: 500ms
-    g10:
+    gate_10:
       move_energy:
         name: LD2412 g10 move energy
         id: ld2412_g10_move_energy
@@ -722,7 +747,7 @@ sensor:
         id: ld2412_g10_still_energy
         filters:
           - throttle: 500ms
-    g11:
+    gate_11:
       move_energy:
         name: LD2412 g11 move energy
         id: ld2412_g11_move_energy
@@ -733,7 +758,7 @@ sensor:
         id: ld2412_g11_still_energy
         filters:
           - throttle: 500ms
-    g12:
+    gate_12:
       move_energy:
         name: LD2412 g12 move energy
         id: ld2412_g12_move_energy
@@ -744,7 +769,7 @@ sensor:
         id: ld2412_g12_still_energy
         filters:
           - throttle: 500ms
-    g13:
+    gate_13:
       move_energy:
         name: LD2412 g13 move energy
         id: ld2412_g13_move_energy
@@ -757,10 +782,14 @@ sensor:
           - throttle: 500ms
 
 select:
-  - platform: LD2412
+  - platform: ld2412
     out_pin_level:
       name: 'LD2412 Hardware output pin level'
       id: ld2412_out_pin_level
+      disabled_by_default: true
+    light_function:
+      name: 'LD2412 Light Function'
+      id: ld2412_light_function
       disabled_by_default: true
     distance_resolution:
       name: 'LD2412 Distance resolution'
@@ -773,16 +802,13 @@ select:
       on_value:
         - delay: 3s
         - lambda: |-
-            id(uart_bus).flush();
+            id(uart_ld2412).flush();
             uint32_t new_baud_rate = stoi(x);
-            ESP_LOGD("change_baud_rate", "Changing baud rate from %i to %i",id(uart_bus).get_baud_rate(), new_baud_rate);
-            if (id(uart_bus).get_baud_rate() != new_baud_rate) {
-            id(uart_bus).set_baud_rate(new_baud_rate);
-            id(uart_bus).load_settings();
+            ESP_LOGD("change_baud_rate", "Changing baud rate from %i to %i", id(uart_ld2412).get_baud_rate(), new_baud_rate);
+            if (id(uart_ld2412).get_baud_rate() != new_baud_rate) {
+              id(uart_ld2412).set_baud_rate(new_baud_rate);
+              id(uart_ld2412).load_settings();
             }
-    mode:
-      name: "LD2412 Mode"
-      id: ld2412_mode
   - platform: ld2450
     ld2450_id: ld2450_radar
     baud_rate:
@@ -806,10 +832,13 @@ switch:
       name: "LD2450 Multi Target Tracking"
       id: ld2450_multi_target
       disabled_by_default: true
-  - platform: LD2412
+  - platform: ld2412
     bluetooth:
       name: "LD2412 Bluetooth"
       id: ld2412_bluetooth
+    engineering_mode:
+      name: "LD2412 Engineering Mode"
+      id: ld2412_engineering_mode
   - platform: template #TODO: Needs implemented
     name: "Reduce DB Reporting"
     id: reduce_db_reporting
@@ -817,6 +846,19 @@ switch:
     restore_mode: RESTORE_DEFAULT_OFF
     optimistic: true
     entity_category: "config"
+
+  - platform: template
+    name: "SCD40 Automatic Self Calibration"
+    id: scd40_auto_self_calibration
+    icon: mdi:tune
+    restore_mode: RESTORE_DEFAULT_ON
+    disabled_by_default: true
+    optimistic: true
+    entity_category: "config"
+    on_turn_on:
+      - lambda: 'id(scd40).set_automatic_self_calibration(true);'
+    on_turn_off:
+      - lambda: 'id(scd40).set_automatic_self_calibration(false);'
 
 text_sensor:
   - platform: ld2450
@@ -841,7 +883,7 @@ text_sensor:
       direction:
         name: "LD2450 Target-3 Direction"
         id: ld2450_target3_direction
-  - platform: LD2412
+  - platform: ld2412
     version:
       name: "LD2412 Firmware"
       id: ld2412_firmware
@@ -899,6 +941,7 @@ script:
         then:
           - lambda: "id(runTest) = false;"
           - lambda: "id(testCycleCount) = 0;"
+          - delay: 2s
           - while:
               condition:
                 - lambda: "return id(testCycleCount) < 5;"

@@ -23,10 +23,10 @@ jobs:
       id-token: write
       pull-requests: write
     with:
-      device-name: rpro-1
+      device-name: r_pro-1
       yaml-files: |
-        Integrations/ESPHome/RPRO-1_ETH.yaml
-        Integrations/ESPHome/RPRO-1_W.yaml
+        Integrations/ESPHome/R_PRO-1_ETH.yaml
+        Integrations/ESPHome/R_PRO-1_W.yaml
       firmware-names: "1_ETH:firmware-e,1_W:firmware-w"
       core-yaml-path: Integrations/ESPHome/Core.yaml
       esphome-version: stable

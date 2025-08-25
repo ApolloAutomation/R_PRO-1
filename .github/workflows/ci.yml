@@ -16,20 +16,20 @@ jobs:
     uses: ApolloAutomation/Workflows/.github/workflows/label-check.yml@main
     
   ci:
-    name: Building ${{ matrix.file }}
+    name: Building ${{ matrix.file }} / ESPHome ${{ matrix.esphome-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         file:
-          - Integrations/ESPHome/RPRO-1_ETH.yaml
-          - Integrations/ESPHome/RPRO-1_W.yaml
+          - Integrations/ESPHome/R_PRO-1_ETH.yaml
+          - Integrations/ESPHome/R_PRO-1_W.yaml
         esphome-version:
           - stable
           - beta
           - dev
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v5.0.0
       - name: Build ESPHome firmware to verify configuration
         uses: esphome/build-action@v7
         with:
