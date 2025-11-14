@@ -433,162 +433,102 @@ sensor:
     target_count:
       name: LD2450 Presence Target Count
       id: presence_target_count
-      filters:
-        - throttle: 500ms
     still_target_count:
       name: LD2450 Still Target Count
       id: ld2450_still_target_count
-      filters:
-        - throttle: 500ms
     moving_target_count:
       name: LD2450 Moving Target Count
       id: ld2450_moving_target_count
-      filters:
-        - throttle: 500ms
     target_1:
       x:
         name: LD2450 Target-1 X
         id: ld2450_target1_x
-        filters:
-          - throttle: 500ms
       y:
         name: LD2450 Target-1 Y
         id: ld2450_target1_y
-        filters:
-          - throttle: 500ms
       speed:
         name: LD2450 Target-1 Speed
         id: ld2450_target1_speed
-        filters:
-          - throttle: 500ms
       angle:
         name: LD2450 Target-1 Angle
         id: ld2450_target1_angle
-        filters:
-          - throttle: 500ms
       distance:
         name: LD2450 Target-1 Distance
         id: ld2450_target1_distance
-        filters:
-          - throttle: 500ms
       resolution:
         name: LD2450 Target-1 Resolution
         id: ld2450_target1_resolution
         disabled_by_default: true
-        filters:
-          - throttle: 500ms
     target_2:
       x:
         name: LD2450 Target-2 X
         id: ld2450_target2_x
-        filters:
-          - throttle: 500ms
       y:
         name: LD2450 Target-2 Y
         id: ld2450_target2_y
-        filters:
-          - throttle: 500ms
       speed:
         name: LD2450 Target-2 Speed
         id: ld2450_target2_speed
-        filters:
-          - throttle: 500ms
       angle:
         name: LD2450 Target-2 Angle
         id: ld2450_target2_angle
-        filters:
-          - throttle: 500ms
       distance:
         name: LD2450 Target-2 Distance
         id: ld2450_target2_distance
-        filters:
-          - throttle: 500ms
       resolution:
         name: LD2450 Target-2 Resolution
         id: ld2450_target2_resolution
         disabled_by_default: true
-        filters:
-          - throttle: 500ms
     target_3:
       x:
         name: LD2450 Target-3 X
         id: ld2450_target3_x
-        filters:
-          - throttle: 500ms
       y:
         name: LD2450 Target-3 Y
         id: ld2450_target3_y
-        filters:
-          - throttle: 500ms
       speed:
         name: LD2450 Target-3 Speed
         id: ld2450_target3_speed
-        filters:
-          - throttle: 500ms
       angle:
         name: LD2450 Target-3 Angle
         id: ld2450_target3_angle
-        filters:
-          - throttle: 500ms
       distance:
         name: LD2450 Target-3 Distance
         id: ld2450_target3_distance
-        filters:
-          - throttle: 500ms
       resolution:
         name: LD2450 Target-3 Resolution
         id: ld2450_target3_resolution
         disabled_by_default: true
-        filters:
-          - throttle: 500ms
     zone_1:
       target_count:
         name: LD2450 Zone-1 All Target Count
         id: ld2450_zone1_target_count
-        filters:
-          - throttle: 500ms
       still_target_count:
         name: LD2450 Zone-1 Still Target Count
         id: ld2450_zone1_still_target_count
-        filters:
-          - throttle: 500ms
       moving_target_count:
         name: LD2450 Zone-1 Moving Target Count
         id: ld2450_zone1_moving_target_count
-        filters:
-          - throttle: 500ms
     zone_2:
       target_count:
         name: LD2450 Zone-2 All Target Count
         id: ld2450_zone2_target_count
-        filters:
-          - throttle: 500ms
       still_target_count:
         name: LD2450 Zone-2 Still Target Count
         id: ld2450_zone2_still_target_count
-        filters:
-          - throttle: 500ms
       moving_target_count:
         name: LD2450 Zone-2 Moving Target Count
         id: ld2450_zone2_moving_target_count
-        filters:
-          - throttle: 500ms
     zone_3:
       target_count:
         name: LD2450 Zone-3 All Target Count
         id: ld2450_zone3_target_count
-        filters:
-          - throttle: 500ms
       still_target_count:
         name: LD2450 Zone-3 Still Target Count
         id: ld2450_zone3_still_target_count
-        filters:
-          - throttle: 500ms
       moving_target_count:
         name: LD2450 Zone-3 Moving Target Count
         id: ld2450_zone3_moving_target_count
-        filters:
-          - throttle: 500ms
 
   - platform: ld2412
     light:
