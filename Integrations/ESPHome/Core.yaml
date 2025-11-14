@@ -326,14 +326,14 @@ binary_sensor:
   - platform: ld2450
     ld2450_id: ld2450_radar
     has_target:
-      id: has_target_bs
-      name: Presence
+      id: ld2450_presence
+      name: "LD2450 Presence"
     has_moving_target:
-      id: has_moving_target_bs
-      name: Moving Target
+      id: ld2450_moving_target
+      name: "LD2450 Moving Target"
     has_still_target:
-      id: has_still_target_bs
-      name: Still Target
+      id: ld2450_still_target
+      name: "LD2450 Still Target"
 
   - platform: status
     name: Online
