@@ -539,187 +539,121 @@ sensor:
       name: LD2412 Moving Distance
       id: ld2412_moving_distance
       disabled_by_default: true
-      filters:
-          - throttle: 500ms
     still_distance:
       name: LD2412 Still Distance
       id: ld2412_still_distance
       disabled_by_default: true
-      filters:
-        - throttle: 500ms
     moving_energy:
       name: LD2412 Move Energy
       id: ld2412_move_energy
       disabled_by_default: true
-      filters:
-        - throttle: 500ms
     still_energy:
       name: LD2412 Still Energy
       id: ld2412_still_energy
       disabled_by_default: true
-      filters:
-        - throttle: 500ms
     detection_distance:
       name: LD2412 Detection Distance
       id: ld2412_detection_distance
       disabled_by_default: true
-      filters:
-        - throttle: 500ms
     gate_0:
       move_energy:
         name: LD2412 g00 move energy
         id: ld2412_g00_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g00 still energy
         id: ld2412_g00_still_energy
-        filters:
-          - throttle: 500ms
-
     gate_1:
       move_energy:
         name: LD2412 g01 move energy
         id: ld2412_g01_move_energy
-        filters:
-          - throttle: 500ms
+
       still_energy:
         name: LD2412 g01 still energy
         id: ld2412_g01_still_energy
-        filters:
-          - throttle: 500ms
     gate_2:
       move_energy:
         name: LD2412 g02 move energy
         id: ld2412_g02_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g02 still energy
         id: ld2412_g02_still_energy
-        filters:
-          - throttle: 500ms
     gate_3:
       move_energy:
         name: LD2412 g03 move energy
         id: ld2412_g03_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g03 still energy
         id: ld2412_g03_still_energy
-        filters:
-          - throttle: 500ms
     gate_4:
       move_energy:
         name: LD2412 g04 move energy
         id: ld2412_g04_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g04 still energy
         id: ld2412_g04_still_energy
-        filters:
-          - throttle: 500ms
     gate_5:
       move_energy:
         name: LD2412 g05 move energy
         id: ld2412_g05_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g05 still energy
         id: ld2412_g05_still_energy
-        filters:
-          - throttle: 500ms
     gate_6:
       move_energy:
         name: LD2412 g06 move energy
         id: ld2412_g06_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g06 still energy
         id: ld2412_g06_still_energy
-        filters:
-          - throttle: 500ms
     gate_7:
       move_energy:
         name: LD2412 g07 move energy
         id: ld2412_g07_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g07 still energy
         id: ld2412_g07_still_energy
-        filters:
-          - throttle: 500ms
     gate_8:
       move_energy:
         name: LD2412 g08 move energy
         id: ld2412_g08_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g08 still energy
         id: ld2412_g08_still_energy
-        filters:
-          - throttle: 500ms
     gate_9:
       move_energy:
         name: LD2412 g09 move energy
         id: ld2412_g09_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g09 still energy
         id: ld2412_g09_still_energy
-        filters:
-          - throttle: 500ms
     gate_10:
       move_energy:
         name: LD2412 g10 move energy
         id: ld2412_g10_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g10 still energy
         id: ld2412_g10_still_energy
-        filters:
-          - throttle: 500ms
     gate_11:
       move_energy:
         name: LD2412 g11 move energy
         id: ld2412_g11_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g11 still energy
         id: ld2412_g11_still_energy
-        filters:
-          - throttle: 500ms
     gate_12:
       move_energy:
         name: LD2412 g12 move energy
         id: ld2412_g12_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g12 still energy
         id: ld2412_g12_still_energy
-        filters:
-          - throttle: 500ms
     gate_13:
       move_energy:
         name: LD2412 g13 move energy
         id: ld2412_g13_move_energy
-        filters:
-          - throttle: 500ms
       still_energy:
         name: LD2412 g13 still energy
         id: ld2412_g13_still_energy
-        filters:
-          - throttle: 500ms
 
 select:
   - platform: ld2412
