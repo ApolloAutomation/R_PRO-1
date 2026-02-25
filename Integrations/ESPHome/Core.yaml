@@ -9,16 +9,16 @@ esp32:
     type: esp-idf
 
 api:
-  services:
-    - service: play_buzzer
+  actions:
+    - action: play_buzzer
       variables:
         song_str: string
       then:
         - rtttl.play:
             rtttl: !lambda 'return song_str;'
 
-    #Co2 Calibration Service
-    - service: calibrate_co2_value
+    #Co2 Calibration Action
+    - action: calibrate_co2_value
       variables:
         co2_ppm: float
       then:
