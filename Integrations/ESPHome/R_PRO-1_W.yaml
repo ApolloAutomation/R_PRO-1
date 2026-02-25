@@ -103,7 +103,7 @@ text_sensor:
   - platform: wifi_info
     ip_address:
       name: "IP Address"
-      id: wifi_ip
+      entity_category: "diagnostic"
 
 packages:
   core: !include Core.yaml
