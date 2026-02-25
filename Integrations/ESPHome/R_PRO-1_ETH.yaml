@@ -93,6 +93,7 @@ text_sensor:
   - platform: ethernet_info
     ip_address:
       name: "IP Address"
+      id: eth_ip
       entity_category: "diagnostic"
 
 packages:
