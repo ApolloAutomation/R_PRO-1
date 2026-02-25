@@ -767,6 +767,16 @@ text_sensor:
       name: "LD2412 BT MAC"
       id: ld2412_bt_mac
       disabled_by_default: true
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    lambda: |-
+      return {"${version}"};
+    entity_category: "diagnostic"
 
 light:
   - platform: esp32_rmt_led_strip
