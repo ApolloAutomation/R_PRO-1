@@ -2,7 +2,6 @@ substitutions:
   version: "25.11.20.1"
 
 esp32:
-  board: esp32-s3-devkitc-1
   variant: esp32s3
   flash_size: 8MB
   framework:
@@ -55,8 +54,9 @@ rtttl:
  id: rtttl_player
  output: buzzer
 
-web_server:  
+web_server:
   port: 80
+  version: 3
 
 i2c:
   sda: GPIO41
