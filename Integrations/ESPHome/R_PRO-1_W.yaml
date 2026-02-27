@@ -82,7 +82,7 @@ select:
       then:
         - if:
             condition:
-              lambda: 'return id(firmware_selector).state == "Ethernet";'
+              lambda: 'return id(firmware_selector).current_option() == "Ethernet";'
             then:
               - logger.log: "OTA updates set to use ethernet firmware"
               - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-e/manifest.json");
