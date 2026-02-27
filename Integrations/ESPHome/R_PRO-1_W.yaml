@@ -4,9 +4,6 @@ esphome:
   friendly_name: Apollo R_PRO-1
   comment: Apollo R_PRO-1
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.R-PRO-1-W"
     version: ${version}
@@ -52,6 +49,7 @@ esp32_improv:
 
 web_server:
   port: 80
+  version: 3
 
 update:
   - platform: http_request
@@ -63,11 +61,6 @@ logger:
 
 wifi:
   id: wifi_1
-  on_connect:
-    - delay: 5s
-    - ble.disable:
-  on_disconnect:
-    - ble.enable:
   ap:
     ssid: "Apollo R PRO 1 Hotspot"
 
@@ -98,6 +91,12 @@ select:
               - logger.log: "OTA updates set to use wifi firmware"
               - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-w/manifest.json");
               - component.update: update_http_request
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+      id: wifi_ip
 
 packages:
   core: !include Core.yaml

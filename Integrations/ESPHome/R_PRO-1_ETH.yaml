@@ -4,9 +4,6 @@ esphome:
   friendly_name: Apollo R_PRO-1
   comment: Apollo R_PRO-1
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.R-PRO-1-ETH"
     version: ${version}
