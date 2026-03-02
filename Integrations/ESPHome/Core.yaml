@@ -189,7 +189,7 @@ number:
     min_value: -70.0
     max_value: 70.0
     entity_category: "CONFIG"
-    unit_of_measurement: "°C"
+    unit_of_measurement: "Â°C"
     optimistic: true
     update_interval: never
     step: 0.1
