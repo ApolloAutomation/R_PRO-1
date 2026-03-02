@@ -1,5 +1,5 @@
 substitutions:
-  version: "25.11.20.1"
+  version: "26.3.2.1"
 
 esp32:
   variant: esp32s3
@@ -189,7 +189,7 @@ number:
     min_value: -70.0
     max_value: 70.0
     entity_category: "CONFIG"
-    unit_of_measurement: "Â°C"
+    unit_of_measurement: "°C"
     optimistic: true
     update_interval: never
     step: 0.1
