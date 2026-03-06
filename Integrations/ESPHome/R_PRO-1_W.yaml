@@ -11,6 +11,11 @@ esphome:
   min_version: 2025.11.0
 
   on_boot:
+    - priority: 900
+      then:
+        - text_sensor.template.publish:
+            id: apollo_firmware_version
+            state: "${version}"
     - priority: 800
       then:
         - if:
