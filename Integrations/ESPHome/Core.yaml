@@ -386,6 +386,13 @@ binary_sensor:
       name: "LD2412 Still Target"
       id: ld2412_still_target
 
+  - platform: template
+    name: "Presence"
+    id: combined_presence
+    device_class: occupancy
+    lambda: |-
+      return id(ld2450_presence).state || id(ld2412_presence).state;
+
 sensor:
   - platform: internal_temperature
     name: "ESP Temperature"
