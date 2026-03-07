@@ -387,7 +387,7 @@ binary_sensor:
       id: ld2412_still_target
 
   - platform: template
-    name: "Presence"
+    name: "Combined Presence"
     id: combined_presence
     device_class: occupancy
     lambda: |-
