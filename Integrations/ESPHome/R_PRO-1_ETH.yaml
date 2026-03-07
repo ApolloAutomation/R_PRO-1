@@ -10,11 +10,6 @@ esphome:
 
   min_version: 2025.11.0
   on_boot:
-    - priority: 900
-      then:
-        - text_sensor.template.publish:
-            id: apollo_firmware_version
-            state: "${version}"
     - priority: 800
       then:
         - if:
@@ -31,7 +26,12 @@ esphome:
               id(scd40).set_automatic_self_calibration(false);
               ESP_LOGI("scd40", "Automatic self-calibration disabled on boot");
             }
-  
+    - priority: 500
+      then:
+        - text_sensor.template.publish:
+            id: apollo_firmware_version
+            state: "${version}"
+
 dashboard_import:
   package_import_url: github://ApolloAutomation/R_PRO-1/Integrations/ESPHome/R_PRO-1_ETH.yaml
   import_full_config: false
