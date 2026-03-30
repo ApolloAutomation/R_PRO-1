@@ -4,16 +4,12 @@ esphome:
   friendly_name: Apollo R_PRO-1
   comment: Apollo R_PRO-1
   name_add_mac_suffix: true
-  platformio_options:
-    board_build.flash_mode: dio
-
   project:
     name: "ApolloAutomation.R-PRO-1-ETH"
     version: ${version}
 
   min_version: 2025.11.0
   on_boot:
-
     - priority: 800
       then:
         - if:
@@ -30,7 +26,12 @@ esphome:
               id(scd40).set_automatic_self_calibration(false);
               ESP_LOGI("scd40", "Automatic self-calibration disabled on boot");
             }
-  
+    - priority: 500
+      then:
+        - text_sensor.template.publish:
+            id: apollo_firmware_version
+            state: "${version}"
+
 dashboard_import:
   package_import_url: github://ApolloAutomation/R_PRO-1/Integrations/ESPHome/R_PRO-1_ETH.yaml
   import_full_config: false
@@ -79,7 +80,7 @@ select:
       then:
         - if:
             condition:
-              lambda: 'return id(firmware_selector).state == "Ethernet";'
+              lambda: 'return id(firmware_selector).current_option() == "Ethernet";'
             then:
               - logger.log: "OTA updates set to use ethernet firmware"
               - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-e/manifest.json");
@@ -88,6 +89,13 @@ select:
               - logger.log: "OTA updates set to use wifi firmware"
               - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-w/manifest.json");
               - component.update: update_http_request
+
+text_sensor:
+  - platform: ethernet_info
+    ip_address:
+      name: "IP Address"
+      id: eth_ip
+      entity_category: "diagnostic"
 
 packages:
   core: !include Core.yaml

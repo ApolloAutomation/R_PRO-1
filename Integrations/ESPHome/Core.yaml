@@ -1,24 +1,23 @@
 substitutions:
-  version: "25.11.20.1"
+  version: "26.3.2.1"
 
 esp32:
-  board: esp32-s3-devkitc-1
   variant: esp32s3
   flash_size: 8MB
   framework:
     type: esp-idf
 
 api:
-  services:
-    - service: play_buzzer
+  actions:
+    - action: play_buzzer
       variables:
         song_str: string
       then:
         - rtttl.play:
             rtttl: !lambda 'return song_str;'
 
-    #Co2 Calibration Service
-    - service: calibrate_co2_value
+    #Co2 Calibration Action
+    - action: calibrate_co2_value
       variables:
         co2_ppm: float
       then:
@@ -55,8 +54,9 @@ rtttl:
  id: rtttl_player
  output: buzzer
 
-web_server:  
+web_server:
   port: 80
+  version: 3
 
 i2c:
   sda: GPIO41
@@ -73,6 +73,7 @@ uart:
   - id: uart_ld2450
     tx_pin: GPIO17
     rx_pin: GPIO18
+    rx_buffer_size: 1024
     baud_rate: 256000
     parity: NONE
     stop_bits: 1
@@ -766,6 +767,15 @@ text_sensor:
       name: "LD2412 BT MAC"
       id: ld2412_bt_mac
       disabled_by_default: true
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+    entity_category: "diagnostic"
+  - platform: template
+    name: "Apollo Firmware Version"
+    id: apollo_firmware_version
+    update_interval: never
+    entity_category: "diagnostic"
 
 light:
   - platform: esp32_rmt_led_strip
