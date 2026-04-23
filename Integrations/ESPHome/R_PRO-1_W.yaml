@@ -26,6 +26,10 @@ esphome:
               id(scd40).set_automatic_self_calibration(false);
               ESP_LOGI("scd40", "Automatic self-calibration disabled on boot");
             }
+    - priority: -100
+      then:
+        # Disable LD2450 Bluetooth by default on boot
+        - switch.turn_off: ld2450_bluetooth
     - priority: 500
       then:
         - text_sensor.template.publish:
