@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.3.2.1"
+  version: "26.6.10.1"
 
 esp32:
   variant: esp32s3
