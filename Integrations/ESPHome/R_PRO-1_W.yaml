@@ -18,14 +18,6 @@ esphome:
               - lambda: "return id(runTest);"
             then:
               - lambda: "id(testScript).execute();"
-        - lambda: |-
-            if (id(scd40_auto_self_calibration).state) {
-              id(scd40).set_automatic_self_calibration(true);
-              ESP_LOGI("scd40", "Automatic self-calibration enabled on boot");
-            } else {
-              id(scd40).set_automatic_self_calibration(false);
-              ESP_LOGI("scd40", "Automatic self-calibration disabled on boot");
-            }
     - priority: -100
       then:
         # Disable LD2450 Bluetooth by default on boot
