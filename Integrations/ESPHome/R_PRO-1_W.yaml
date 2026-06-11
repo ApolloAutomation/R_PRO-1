@@ -61,6 +61,8 @@ update:
 logger:
 
 wifi:
+  on_connect:
+    - component.update: update_http_request
   id: wifi_1
   ap:
     ssid: "Apollo R PRO 1 Hotspot"

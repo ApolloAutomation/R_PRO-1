@@ -10,6 +10,13 @@ esphome:
 
   min_version: 2025.11.0
   on_boot:
+    - priority: -100
+      then:
+        - wait_until:
+            condition:
+              lambda: return network::is_connected();
+            timeout: 60s
+        - component.update: update_http_request
     - priority: 800
       then:
         - if:
