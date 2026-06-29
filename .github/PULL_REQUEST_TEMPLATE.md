@@ -45,5 +45,3 @@ If user-visible functionality or configuration variables are added/modified:
 <!--
   Thank you for contributing <3
 -->
-
-
