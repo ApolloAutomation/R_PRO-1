@@ -1,5 +1,14 @@
 substitutions:
-  version: "26.6.10.1"
+  version: "26.7.8.1"
+  # Default update channel on first boot (no stored user choice yet, i.e. a
+  # fresh flash). The beta-channel builds override this to "Beta" (see
+  # Integrations/ESPHome/beta-channel/) so firmware obtained from the beta
+  # channel keeps tracking it instead of offering a stable "downgrade".
+  firmware_channel_default: "Stable"
+  # Manifest URL bases. Stable = GitHub Pages (main branch builds).
+  # Beta = rolling "beta" pre-release assets (beta branch builds).
+  stable_manifest_base: "https://apolloautomation.github.io/R_PRO-1"
+  beta_manifest_base: "https://github.com/ApolloAutomation/R_PRO-1/releases/download/beta-fw"
 
 esp32:
   variant: esp32s3
@@ -665,6 +674,21 @@ sensor:
         id: ld2412_g13_still_energy
 
 select:
+  - platform: template
+    name: "Firmware Channel"
+    id: firmware_channel
+    icon: mdi:source-branch
+    entity_category: "config"
+    optimistic: true
+    restore_value: true
+    options:
+      - "Stable"
+      - "Beta"
+    initial_option: "${firmware_channel_default}"
+    on_value:
+      then:
+        - script.execute: apply_ota_source
+
   - platform: ld2412
     out_pin_level:
       name: 'LD2412 Hardware output pin level'
@@ -814,6 +838,28 @@ light:
           max_brightness: 100%
 
 script:
+  - id: apply_ota_source
+    # Sets the OTA manifest URL from the two selectors: Firmware Type
+    # (WiFi/Ethernet) x Firmware Channel (Stable/Beta).
+    # Stable = GitHub Pages, Beta = rolling "beta" release assets.
+    then:
+      - lambda: |-
+          const bool eth  = id(firmware_selector).current_option() == "Ethernet";
+          const bool beta = id(firmware_channel).current_option() == "Beta";
+          std::string url;
+          if (beta) {
+            url = eth
+              ? "${beta_manifest_base}/manifest-e.json"
+              : "${beta_manifest_base}/manifest-w.json";
+          } else {
+            url = eth
+              ? "${stable_manifest_base}/firmware-e/manifest.json"
+              : "${stable_manifest_base}/firmware-w/manifest.json";
+          }
+          ESP_LOGI("firmware", "OTA manifest set to: %s", url.c_str());
+          id(update_http_request).set_source_url(url);
+      - component.update: update_http_request
+
   - id: setCo2AutoCalibration
     mode: restart
     parameters:
