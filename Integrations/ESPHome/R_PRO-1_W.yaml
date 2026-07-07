@@ -38,9 +38,6 @@ ota:
   - platform: http_request
     id: ota_managed
 
-http_request:
-  verify_ssl: true
-
 safe_mode:
 
 improv_serial:
@@ -83,17 +80,9 @@ select:
     initial_option: "WiFi"
     on_value:
       then:
-        - if:
-            condition:
-              lambda: 'return id(firmware_selector).current_option() == "Ethernet";'
-            then:
-              - logger.log: "OTA updates set to use ethernet firmware"
-              - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-e/manifest.json");
-              - component.update: update_http_request
-            else:
-              - logger.log: "OTA updates set to use wifi firmware"
-              - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-w/manifest.json");
-              - component.update: update_http_request
+        # URL logic lives in Core.yaml's apply_ota_source so it can combine
+        # Firmware Type with the Firmware Channel (Stable/Beta) select.
+        - script.execute: apply_ota_source
 
 text_sensor:
   - platform: wifi_info
