@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.7.12.1"
+  version: "26.7.14.1"
   # Default update channel on first boot (no stored user choice yet, i.e. a
   # fresh flash). The beta-channel builds override this to "Beta" (see
   # Integrations/ESPHome/beta-channel/) so firmware obtained from the beta
@@ -45,6 +45,7 @@ esp32_ble_tracker:
 bluetooth_proxy:
 
 api:
+  encryption:
   actions:
     - action: play_buzzer
       variables:
