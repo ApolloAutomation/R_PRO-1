@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.7.14.1"
+  version: "26.8.27.1"
   # Default update channel on first boot (no stored user choice yet, i.e. a
   # fresh flash). The beta-channel builds override this to "Beta" (see
   # Integrations/ESPHome/beta-channel/) so firmware obtained from the beta
@@ -881,7 +881,7 @@ light:
     default_transition_length: 0s
     chipset: WS2812
     num_leds: 4
-    rgb_order: grb
+    channel_colors: GRB
     effects:
       - pulse:
           name: "Slow Pulse"
