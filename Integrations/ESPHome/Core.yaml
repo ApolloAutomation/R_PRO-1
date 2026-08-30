@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.6.10.1"
+  version: "26.8.27.1"
 
 esp32:
   variant: esp32s3
@@ -798,7 +798,7 @@ light:
     default_transition_length: 0s
     chipset: WS2812
     num_leds: 4
-    rgb_order: grb
+    channel_colors: GRB
     effects:
       - pulse:
           name: "Slow Pulse"
