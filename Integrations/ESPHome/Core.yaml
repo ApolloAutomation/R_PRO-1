@@ -1,5 +1,35 @@
 substitutions:
   version: "26.8.27.1"
+  # Default update channel on first boot (no stored user choice yet, i.e. a
+  # fresh flash). The beta-channel builds override this to "Beta" (see
+  # Integrations/ESPHome/beta-channel/) so firmware obtained from the beta
+  # channel keeps tracking it instead of offering a stable "downgrade".
+  firmware_channel_default: "Stable"
+  # Manifest URL bases. Stable = GitHub Pages (main branch builds).
+  # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
+  stable_manifest_base: "https://apolloautomation.github.io/R_PRO-1"
+  beta_manifest_base: "https://github.com/ApolloAutomation/R_PRO-1/releases/download/beta-fw"
+
+esphome:
+  # List form so package merging concatenates with each variant's own on_boot
+  # entries (mapping form would be replaced by the variant's block instead).
+  on_boot:
+    # Point the update entity at the selected type/channel manifest.
+    - priority: -100
+      then:
+        - script.execute: apply_ota_source
+    # Re-apply the Bluetooth Proxy switch after all components set up, so BLE
+    # scanning matches the persisted switch (proxy stays off by default).
+    - priority: -300
+      then:
+        - if:
+            condition:
+              switch.is_on: bluetooth_proxy_switch
+            then:
+              - esp32_ble_tracker.start_scan:
+                  continuous: true
+            else:
+              - esp32_ble_tracker.stop_scan:
 
 esp32:
   variant: esp32s3
@@ -7,7 +37,15 @@ esp32:
   framework:
     type: esp-idf
 
+esp32_ble_tracker:
+  id: ble_tracker
+  scan_parameters:
+    continuous: true
+
+bluetooth_proxy:
+
 api:
+  encryption:
   actions:
     - action: play_buzzer
       variables:
@@ -57,6 +95,17 @@ rtttl:
 web_server:
   port: 80
   version: 3
+
+http_request:
+  verify_ssl: true
+  # GitHub release-asset downloads answer with a redirect carrying a
+  # ~3.6 KB Content-Security-Policy header; each header line must fit
+  # this buffer or the request fails with "HTTP_CLIENT: Out of buffer".
+  buffer_size_rx: 5120
+  # The redirect target is a signed URL with a ~850-char query string; the
+  # follow-up request line must fit the TX buffer or esp_http_client_open
+  # fails with "Out of buffer" before sending anything.
+  buffer_size_tx: 2048
 
 i2c:
   sda: GPIO41
@@ -129,11 +178,17 @@ button:
   - platform: template
     name: "Firmware Update"
     id: update_firmware
+    icon: mdi:cloud-download
     entity_category: config
     on_press:
-      then:
-        - lambda: |-
-            id(update_http_request).perform(true);
+      - logger.log: "Applying firmware update for the selected type and channel"
+      - delay: 3s
+      - script.execute: apply_ota_source
+      - script.wait: apply_ota_source
+      # The manifest fetch runs in its own task; give it a fixed window to land
+      # (update.is_available stays false for same-version switches).
+      - delay: 5s
+      - lambda: id(update_http_request).perform(true);
 
 number:
   - platform: ld2450
@@ -665,6 +720,21 @@ sensor:
         id: ld2412_g13_still_energy
 
 select:
+  - platform: template
+    name: "Firmware Channel"
+    id: firmware_channel
+    icon: mdi:source-branch
+    entity_category: "config"
+    optimistic: true
+    restore_value: true
+    options:
+      - "Stable"
+      - "Beta"
+    initial_option: "${firmware_channel_default}"
+    on_value:
+      then:
+        - script.execute: apply_ota_source
+
   - platform: ld2412
     out_pin_level:
       name: 'LD2412 Hardware output pin level'
@@ -748,6 +818,19 @@ switch:
             id: setCo2AutoCalibration
             enable: false
 
+  - platform: template
+    name: "Bluetooth Proxy"
+    id: bluetooth_proxy_switch
+    icon: mdi:bluetooth
+    entity_category: "config"
+    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: true
+    on_turn_on:
+      - esp32_ble_tracker.start_scan:
+          continuous: true
+    on_turn_off:
+      - esp32_ble_tracker.stop_scan:
+
 text_sensor:
   - platform: ld2450
     ld2450_id: ld2450_radar
@@ -814,6 +897,28 @@ light:
           max_brightness: 100%
 
 script:
+  - id: apply_ota_source
+    # Sets the OTA manifest URL from the two selectors: Firmware Type
+    # (WiFi/Ethernet) x Firmware Channel (Stable/Beta).
+    # Stable = GitHub Pages, Beta = rolling "beta-fw" release assets.
+    then:
+      - lambda: |-
+          const bool eth  = id(firmware_selector).current_option() == "Ethernet";
+          const bool beta = id(firmware_channel).current_option() == "Beta";
+          std::string url;
+          if (beta) {
+            url = eth
+              ? "${beta_manifest_base}/manifest-e.json"
+              : "${beta_manifest_base}/manifest-w.json";
+          } else {
+            url = eth
+              ? "${stable_manifest_base}/firmware-e/manifest.json"
+              : "${stable_manifest_base}/firmware-w/manifest.json";
+          }
+          ESP_LOGI("firmware", "OTA manifest set to: %s", url.c_str());
+          id(update_http_request).set_source_url(url);
+      - component.update: update_http_request
+
   - id: setCo2AutoCalibration
     mode: restart
     parameters:
