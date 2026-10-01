@@ -61,6 +61,19 @@ esphome:
                   condition:
                     ethernet.connected:
                   timeout: 20s
+              # A never-provisioned unit would open the hotspot here, so give a link
+              # behind spanning tree (~30s to forward) more time first
+              - if:
+                  condition:
+                    and:
+                      - not:
+                          ethernet.connected:
+                      - lambda: "return !id(wifi_provisioned);"
+                  then:
+                    - wait_until:
+                        condition:
+                          ethernet.connected:
+                        timeout: 40s
               - if:
                   condition:
                     not:
@@ -145,7 +158,23 @@ ethernet:
   on_disconnect:
     # Cable gone, so bring WiFi up to rejoin or open the provisioning hotspot
     - lambda: "id(ethernet_expected) = false;"
-    - wifi.enable:
+    - if:
+        condition:
+          lambda: "return id(ap_latched);"
+        then:
+          # ESPHome can't relaunch a once-started hotspot in the same boot, so
+          # reboot into a fresh one (let the first-boot self-test finish first)
+          - wait_until:
+              condition:
+                not:
+                  script.is_running: testScript
+              timeout: 30s
+          - lambda: |-
+              ESP_LOGW("network", "Cable removed after the hotspot was released; rebooting to restore provisioning");
+          - delay: 500ms
+          - lambda: "App.safe_reboot();"
+        else:
+          - wifi.enable:
     - component.update: network_connection
 
 wifi:
@@ -265,6 +294,12 @@ globals:
     initial_value: 'false'
   # One update check per boot, on whichever interface connects first
   - id: update_checked
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  # True once the hotspot has run and been released this boot (it can't relaunch
+  # until the next reboot)
+  - id: ap_latched
     type: bool
     restore_value: no
     initial_value: 'false'
@@ -1105,25 +1140,23 @@ script:
                   - script.execute: wifi_release_radio
 
   - id: wifi_release_radio
-    # Turn WiFi off while Ethernet carries the device, ending AP+STA and the captive portal
+    # Turn WiFi off while Ethernet carries the device, ending AP+STA and the captive
+    # portal. A live hotspot is only remembered (ap_latched); the reboot that clears
+    # it happens on cable removal, never at cable connect, so a slow link can't loop.
     then:
       - lambda: "id(ethernet_expected) = true;"
       - if:
           condition:
             wifi.ap_active:
           then:
-            # Must reboot to clear a live hotspot: ESPHome can't relaunch a
-            # once-started AP in the same boot, leaving it serving nothing
             - lambda: |-
-                ESP_LOGW("network", "Rebooting to fully release the active hotspot (one-time)");
-            - delay: 500ms
-            - lambda: "App.safe_reboot();"
-          else:
-            - wifi.disable:
-            - lambda: |-
-                if (id(captive_portal_1).is_active()) {
-                  id(captive_portal_1).end();
-                }
+                id(ap_latched) = true;
+                ESP_LOGW("network", "Releasing the active hotspot; Ethernet carries the device");
+      - wifi.disable:
+      - lambda: |-
+          if (id(captive_portal_1).is_active()) {
+            id(captive_portal_1).end();
+          }
 
   - id: setCo2AutoCalibration
     mode: restart
