@@ -80,7 +80,7 @@ esphome:
                       ethernet.connected:
                   then:
                     - lambda: "id(ethernet_expected) = false;"
-                    - wifi.enable:
+                    - script.execute: wifi_reenable_radio
 
 ota:
   - platform: esphome
@@ -190,7 +190,7 @@ ethernet:
                 - delay: 500ms
                 - lambda: "App.safe_reboot();"
         else:
-          - wifi.enable:
+          - script.execute: wifi_reenable_radio
     - component.update: network_connection
 
 wifi:
@@ -1139,7 +1139,7 @@ script:
   - id: wifi_recovery_probe
     # Re-attempt WiFi while Ethernet carries the device; a rejoin restores dual-home
     then:
-      - wifi.enable:
+      - script.execute: wifi_reenable_radio
       - wait_until:
           condition:
             wifi.connected:
@@ -1155,6 +1155,17 @@ script:
                   ethernet.connected:
                 then:
                   - script.execute: wifi_release_radio
+
+  - id: wifi_reenable_radio
+    # Clearing the STA list first makes ESPHome reload saved credentials from the
+    # same NVS key it uses at boot, so later provisioning is stored where the next
+    # boot reads it (a second start() in one boot would otherwise switch keys)
+    then:
+      - lambda: |-
+          if (id(wifi_1).is_disabled()) {
+            id(wifi_1).clear_sta();
+          }
+      - wifi.enable:
 
   - id: wifi_release_radio
     # Turn WiFi off while Ethernet carries the device, ending AP+STA and the captive
