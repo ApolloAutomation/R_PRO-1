@@ -350,9 +350,21 @@ button:
     id: update_firmware
     entity_category: config
     on_press:
-      then:
-        - lambda: |-
-            id(update_http_request).perform(true);
+      # Refresh the manifest first so a forced install never starts with an empty URL
+      - component.update: update_http_request
+      - wait_until:
+          condition:
+            lambda: "return !id(update_http_request).update_info.firmware_url.empty();"
+          timeout: 15s
+      - if:
+          condition:
+            lambda: "return !id(update_http_request).update_info.firmware_url.empty();"
+          then:
+            - lambda: "id(update_http_request).perform(true);"
+          else:
+            - logger.log:
+                level: WARN
+                format: "Firmware Update: no manifest available yet, not starting an install"
 
 number:
   - platform: ld2450
