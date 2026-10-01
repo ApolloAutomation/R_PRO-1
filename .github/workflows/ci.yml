@@ -14,5 +14,6 @@ jobs:
     uses: ApolloAutomation/Workflows/.github/workflows/esphome-ci.yml@main
     with:
       yaml-files: |
+        Integrations/ESPHome/R_PRO-1.yaml
         Integrations/ESPHome/R_PRO-1_ETH.yaml
         Integrations/ESPHome/R_PRO-1_W.yaml
