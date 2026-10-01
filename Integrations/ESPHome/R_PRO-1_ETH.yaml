@@ -1,103 +1,19 @@
+# Legacy Ethernet-variant shim: builds the unified firmware but keeps the original
+# device/project name and firmware-e/ manifest path so fielded devices keep updating.
+# New installs should use R_PRO-1.yaml.
+
+substitutions:
+  stable_manifest_dir: "firmware-e"
 
 esphome:
   name: "apollo-r-pro-1-eth"
-  friendly_name: Apollo R_PRO-1
-  comment: Apollo R_PRO-1
-  name_add_mac_suffix: true
   project:
     name: "ApolloAutomation.R-PRO-1-ETH"
     version: ${version}
 
-  min_version: 2026.8.0
-  on_boot:
-    - priority: -100
-      then:
-        - wait_until:
-            condition:
-              lambda: return network::is_connected();
-            timeout: 60s
-        - component.update: update_http_request
-    - priority: 800
-      then:
-        - if:
-            condition:
-              - lambda: "return id(runTest);"
-            then:
-              - lambda: "id(testScript).execute();"
-    - priority: -100
-      then:
-        # Disable LD2450 Bluetooth by default on boot
-        - switch.turn_off: ld2450_bluetooth
-    - priority: 500
-      then:
-        - text_sensor.template.publish:
-            id: apollo_firmware_version
-            state: "${version}"
-
 dashboard_import:
   package_import_url: github://ApolloAutomation/R_PRO-1/Integrations/ESPHome/R_PRO-1_ETH.yaml
   import_full_config: false
-
-ota:
-  - platform: esphome
-    id: ota_esphome
-  - platform: http_request
-    id: ota_managed
-
-http_request:
-  verify_ssl: true
-
-safe_mode:
-
-update:
-  - platform: http_request
-    id: update_http_request
-    name: Firmware Update
-    source: https://apolloautomation.github.io/R_PRO-1/firmware-e/manifest.json
-
-logger:
-
-ethernet:  
-  type: W5500  
-  clk_pin: GPIO10  
-  mosi_pin: GPIO12 
-  miso_pin: GPIO11
-  cs_pin: GPIO9
-  interrupt_pin: GPIO13
-  reset_pin: GPIO14
-
-select:
-  - platform: template
-    id: firmware_selector
-    name: Firmware Type
-    icon: "mdi:test-tube"
-    entity_category: config
-    optimistic: true
-    restore_value: true
-    options:
-      - "WiFi"
-      - "Ethernet"
-    initial_option: "Ethernet"
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(firmware_selector).current_option() == "Ethernet";'
-            then:
-              - logger.log: "OTA updates set to use ethernet firmware"
-              - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-e/manifest.json");
-              - component.update: update_http_request
-            else:
-              - logger.log: "OTA updates set to use wifi firmware"
-              - lambda: id(update_http_request).set_source_url("https://apolloautomation.github.io/R_PRO-1/firmware-w/manifest.json");
-              - component.update: update_http_request
-
-text_sensor:
-  - platform: ethernet_info
-    ip_address:
-      name: "IP Address"
-      id: eth_ip
-      entity_category: "diagnostic"
 
 packages:
   core: !include Core.yaml
