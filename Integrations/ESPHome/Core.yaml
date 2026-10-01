@@ -160,19 +160,35 @@ ethernet:
     - lambda: "id(ethernet_expected) = false;"
     - if:
         condition:
-          lambda: "return id(ap_latched);"
+          and:
+            - lambda: "return id(ap_latched);"
+            - not:
+                wifi.connected:
         then:
-          # ESPHome can't relaunch a once-started hotspot in the same boot, so
-          # reboot into a fresh one (let the first-boot self-test finish first)
+          # ESPHome can't relaunch a once-started hotspot in the same boot, so reboot
+          # into a fresh one, but only for a real cable pull (not a link blip) and
+          # after the first-boot self-test has finished
           - wait_until:
               condition:
                 not:
                   script.is_running: testScript
               timeout: 30s
-          - lambda: |-
-              ESP_LOGW("network", "Cable removed after the hotspot was released; rebooting to restore provisioning");
-          - delay: 500ms
-          - lambda: "App.safe_reboot();"
+          - wait_until:
+              condition:
+                ethernet.connected:
+              timeout: 15s
+          - if:
+              condition:
+                and:
+                  - not:
+                      ethernet.connected:
+                  - not:
+                      wifi.connected:
+              then:
+                - lambda: |-
+                    ESP_LOGW("network", "Cable removed after the hotspot was released; rebooting to restore provisioning");
+                - delay: 500ms
+                - lambda: "App.safe_reboot();"
         else:
           - wifi.enable:
     - component.update: network_connection
@@ -215,6 +231,7 @@ captive_portal:
 improv_serial:
 
 esp32_improv:
+  id: esp32_improv_1
   authorizer: none
 
 # Retry a released WiFi while Ethernet is up, so an outage doesn't leave the
@@ -1153,10 +1170,12 @@ script:
                 id(ap_latched) = true;
                 ESP_LOGW("network", "Releasing the active hotspot; Ethernet carries the device");
       - wifi.disable:
+      # Also stop Improv BLE so the device isn't offered for WiFi setup it can't complete
       - lambda: |-
           if (id(captive_portal_1).is_active()) {
             id(captive_portal_1).end();
           }
+          id(esp32_improv_1).stop();
 
   - id: setCo2AutoCalibration
     mode: restart
