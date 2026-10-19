@@ -6,8 +6,6 @@ on:
 permissions:
   contents: read
 
-# Label check lives in label-check.yml on pull_request_target so it can
-# label fork-submitted PRs; plain pull_request tokens are read-only there.
 jobs:
   ci:
     name: CI
@@ -17,3 +15,4 @@ jobs:
         Integrations/ESPHome/R_PRO-1.yaml
         Integrations/ESPHome/R_PRO-1_ETH.yaml
         Integrations/ESPHome/R_PRO-1_W.yaml
+
