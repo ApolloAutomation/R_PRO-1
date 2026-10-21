@@ -3,6 +3,8 @@ substitutions:
   stable_manifest_base: "https://apolloautomation.github.io/R_PRO-1"
   # Legacy _W/_ETH shims override this so fielded devices keep their manifest URL
   stable_manifest_dir: "firmware"
+  # "false" keeps WiFi off entirely (Ethernet-only, like the old Ethernet firmware)
+  wifi_fallback: "true"
 
 esphome:
   friendly_name: Apollo R_PRO-1
@@ -24,7 +26,7 @@ esphome:
       then:
         - if:
             condition:
-              lambda: "return id(ethernet_expected);"
+              lambda: "return id(ethernet_expected) || !id(wifi_fallback_on);"
             then:
               - lambda: "id(wifi_1).set_enable_on_boot(false);"
     - priority: 500
@@ -41,7 +43,7 @@ esphome:
       then:
         - if:
             condition:
-              lambda: "return id(ethernet_expected);"
+              lambda: "return id(ethernet_expected) && id(wifi_fallback_on);"
             then:
               - wait_until:
                   condition:
@@ -176,7 +178,11 @@ ethernet:
                 - delay: 500ms
                 - lambda: "App.safe_reboot();"
         else:
-          - script.execute: wifi_reenable_radio
+          - if:
+              condition:
+                lambda: "return id(wifi_fallback_on);"
+              then:
+                - script.execute: wifi_reenable_radio
     - component.update: network_connection
 
 wifi:
@@ -248,7 +254,7 @@ interval:
               - ethernet.connected:
               - not:
                   wifi.enabled:
-              - lambda: "return id(wifi_provisioned);"
+              - lambda: "return id(wifi_provisioned) && id(wifi_fallback_on);"
           then:
             - script.execute: wifi_recovery_probe
 
@@ -325,6 +331,11 @@ globals:
   # True when WiFi networks come from YAML rather than from saved provisioning. Globals are
   # built after wifi adds its YAML networks and before setup() loads saved ones, and an
   # initializer can't be dropped by a user's on_boot override
+  # The wifi_fallback substitution as a bool; false is accepted quoted or unquoted
+  - id: wifi_fallback_on
+    type: bool
+    restore_value: no
+    initial_value: 'std::string_view("${wifi_fallback}") != "false" && std::string_view("${wifi_fallback}") != "False"'
   - id: wifi_yaml_networks
     type: bool
     restore_value: no
