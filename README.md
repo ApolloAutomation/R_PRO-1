@@ -43,6 +43,16 @@ Existing devices update to the unified firmware through their normal "Firmware U
 - A WiFi device gains Ethernet, and an Ethernet device gains WiFi as a fallback, with no reflash needed.
 - On the first boot after the update, an Ethernet device shows the "Apollo R PRO 1 Hotspot" until its cable connects, which can take 30 seconds or more on some switches. The LEDs may also run their short self-test. Both happen only once.
 
+### Customizing the firmware ("Take Control" in ESPHome)
+
+If you adopt the device in the ESPHome dashboard and add your own YAML:
+
+- Add to `on_boot` as a list of `- priority: ...` entries, and to `on_connect` and `on_disconnect` as a list of actions (`- logger.log: ...`). The single-trigger form replaces the device's own boot and network handling.
+- To run Ethernet-only with WiFi off entirely, add `wifi_fallback: "false"` under `substitutions:`. Setting `wifi: enable_on_boot: false` alone is not enough, because the firmware turns WiFi back on to recover connectivity.
+- If you give Ethernet a static IP and your dashboard can't resolve the device by name, set `wifi: use_address:` to that IP. The dashboard uses WiFi's address setting.
+- Keep `captive_portal:` and `esp32_improv:`, and put any Improv BLE settings under `esp32_improv:` rather than `improv_ble:`. The firmware refers to both.
+- The Ethernet-first `network: priority` is fixed.
+
 ## Links
 
 - [Shop](https://apolloautomation.com/products/r-1?utm_source=esphome&utm_medium=social)
