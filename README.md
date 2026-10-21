@@ -41,6 +41,7 @@ Existing devices update to the unified firmware through their normal "Firmware U
 - The **Firmware Type** select is gone; the device no longer needs it.
 - The **IP Address** sensor is replaced by **Ethernet IP Address** and **WiFi IP Address**, plus the new **Network Connection** sensor. You can delete the old entity in Home Assistant.
 - A WiFi device gains Ethernet, and an Ethernet device gains WiFi as a fallback, with no reflash needed.
+- On the first boot after the update, an Ethernet device shows the "Apollo R PRO 1 Hotspot" for a few seconds until its cable connects, and the LEDs may run their short self-test. Both happen only once.
 
 ## Links
 
