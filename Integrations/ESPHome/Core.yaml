@@ -22,27 +22,11 @@ esphome:
     # broadcast while Ethernet waits for DHCP. Runs after globals restore (800), before wifi setup.
     - priority: 600
       then:
-        # Before wifi setup the STA list holds only networks from YAML (ESPHome "take control")
-        - lambda: "id(wifi_yaml_networks) = id(wifi_1).has_sta();"
         - if:
             condition:
               lambda: "return id(ethernet_expected);"
             then:
               - lambda: "id(wifi_1).set_enable_on_boot(false);"
-    # No W5500 fitted (WiFi-only unit): park the driver's helper task so it stops
-    # polling a floating SPI bus and crashing the device. Runs after ethernet setup (250).
-    - priority: 200
-      then:
-        - if:
-            condition:
-              lambda: "return id(ethernet_1).is_failed();"
-            then:
-              - lambda: |-
-                  TaskHandle_t orphan = xTaskGetHandle("w5500_tsk");
-                  if (orphan != nullptr) {
-                    vTaskSuspend(orphan);
-                    ESP_LOGW("ethernet", "No W5500 detected; parked the W5500 helper task");
-                  }
     - priority: 500
       then:
         - text_sensor.template.publish:
@@ -239,6 +223,22 @@ esp32_improv:
 # Retry a released WiFi while Ethernet is up, so an outage doesn't leave the
 # radio silent until the next cable pull
 interval:
+  # No W5500 fitted (WiFi-only unit): park the driver's helper task so it stops polling a
+  # floating SPI bus and crashing the device. An interval, not on_boot, so a user's on_boot
+  # override can't drop it; runs once, after setup has decided whether ethernet failed.
+  - id: w5500_park_interval
+    interval: 1s
+    then:
+      - lambda: |-
+          static bool checked = false;
+          if (checked) return;
+          checked = true;
+          if (!id(ethernet_1).is_failed()) return;
+          TaskHandle_t orphan = xTaskGetHandle("w5500_tsk");
+          if (orphan != nullptr) {
+            vTaskSuspend(orphan);
+            ESP_LOGW("ethernet", "No W5500 detected; parked the W5500 helper task");
+          }
   - id: wifi_recovery_interval
     interval: 10min
     then:
@@ -322,11 +322,13 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  # True when WiFi networks come from YAML rather than from saved provisioning
+  # True when WiFi networks come from YAML rather than from saved provisioning. Globals are
+  # built after wifi adds its YAML networks and before setup() loads saved ones, and an
+  # initializer can't be dropped by a user's on_boot override
   - id: wifi_yaml_networks
     type: bool
     restore_value: no
-    initial_value: 'false'
+    initial_value: 'wifi::global_wifi_component != nullptr && wifi::global_wifi_component->has_sta()'
 
 rtttl:
  id: rtttl_player
