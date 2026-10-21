@@ -29,8 +29,8 @@ The R_PRO-1 has been designed to fit both in recessed ceiling mounts and wall ga
 
 One firmware covers both WiFi and Ethernet, so there is no need to pick a variant or reflash to switch:
 
-- **Ethernet plugged in:** traffic moves to Ethernet. If the device is also joined to your WiFi, that connection stays up alongside, so Home Assistant never loses the device when you plug or unplug the cable. If WiFi has no network to join, it turns off; the setup hotspot is never active while Ethernet is connected.
-- **No Ethernet:** WiFi works as usual. The device rejoins its saved network, or opens the hotspot for setup if none is configured.
+- **Ethernet plugged in:** traffic moves to Ethernet. If the device is also joined to your WiFi, that connection stays up alongside, so Home Assistant keeps or quickly regains the device when you plug or unplug the cable. If WiFi has no network to join, it turns off; the setup hotspot is never active while Ethernet is connected.
+- **No Ethernet:** WiFi works as usual. The device rejoins its saved network, or opens the hotspot for setup if none is configured. Its log then shows an Ethernet "Connecting failed" warning every 15 seconds, which is normal.
 
 Use the on-device **Network Connection** sensor (Diagnostics) to see which connection is active.
 
@@ -41,7 +41,7 @@ Existing devices update to the unified firmware through their normal "Firmware U
 - The **Firmware Type** select is gone; the device no longer needs it.
 - The **IP Address** sensor is replaced by **Ethernet IP Address** and **WiFi IP Address**, plus the new **Network Connection** sensor. You can delete the old entity in Home Assistant.
 - A WiFi device gains Ethernet, and an Ethernet device gains WiFi as a fallback, with no reflash needed.
-- On the first boot after the update, an Ethernet device shows the "Apollo R PRO 1 Hotspot" for a few seconds until its cable connects, and the LEDs may run their short self-test. Both happen only once.
+- On the first boot after the update, an Ethernet device shows the "Apollo R PRO 1 Hotspot" until its cable connects, which can take 30 seconds or more on some switches. The LEDs may also run their short self-test. Both happen only once.
 
 ## Links
 
