@@ -22,6 +22,8 @@ esphome:
     # broadcast while Ethernet waits for DHCP. Runs after globals restore (800), before wifi setup.
     - priority: 600
       then:
+        # Before wifi setup the STA list holds only networks from YAML (ESPHome "take control")
+        - lambda: "id(wifi_yaml_networks) = id(wifi_1).has_sta();"
         - if:
             condition:
               lambda: "return id(ethernet_expected);"
@@ -317,6 +319,11 @@ globals:
   # True once the hotspot has run and been released this boot (it can't relaunch
   # until the next reboot)
   - id: ap_latched
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+  # True when WiFi networks come from YAML rather than from saved provisioning
+  - id: wifi_yaml_networks
     type: bool
     restore_value: no
     initial_value: 'false'
@@ -1157,12 +1164,11 @@ script:
                   - script.execute: wifi_release_radio
 
   - id: wifi_reenable_radio
-    # Clearing the STA list first makes ESPHome reload saved credentials from the
-    # same NVS key it uses at boot, so later provisioning is stored where the next
-    # boot reads it (a second start() in one boot would otherwise switch keys)
+    # With provisioned (not YAML) networks, clear the STA list so start() reloads from and
+    # saves to the boot-time NVS key; a second start() in one boot would otherwise switch keys
     then:
       - lambda: |-
-          if (id(wifi_1).is_disabled()) {
+          if (id(wifi_1).is_disabled() && !id(wifi_yaml_networks)) {
             id(wifi_1).clear_sta();
           }
       - wifi.enable:
