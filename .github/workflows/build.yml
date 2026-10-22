@@ -24,7 +24,7 @@ jobs:
       pull-requests: write
     with:
       device-name: r_pro-1
-      # _ETH/_W are legacy shims of R_PRO-1.yaml, kept so firmware-e/ and firmware-w/
+      # _ETH/_W are legacy shims over Core.yaml, kept so firmware-e/ and firmware-w/
       # keep publishing for fielded devices (a Pages deploy replaces the whole site).
       yaml-files: |
         Integrations/ESPHome/R_PRO-1.yaml

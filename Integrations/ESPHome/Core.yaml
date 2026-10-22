@@ -228,12 +228,9 @@ esp32_improv:
   id: esp32_improv_1
   authorizer: none
 
-# Retry a released WiFi while Ethernet is up, so an outage doesn't leave the
-# radio silent until the next cable pull
 interval:
-  # No W5500 fitted (WiFi-only unit): park the driver's helper task so it stops polling a
-  # floating SPI bus and crashing the device. An interval, not on_boot, so a user's on_boot
-  # override can't drop it; runs once, after setup has decided whether ethernet failed.
+  # No W5500 detected: park the driver's helper task so it can't crash the device polling
+  # a floating SPI bus. Runs once after setup, from an interval so on_boot overrides can't drop it
   - id: w5500_park_interval
     interval: 1s
     then:
@@ -247,6 +244,8 @@ interval:
             vTaskSuspend(orphan);
             ESP_LOGW("ethernet", "No W5500 detected; parked the W5500 helper task");
           }
+  # Retry a released WiFi while Ethernet is up, so an outage doesn't leave the
+  # radio silent until the next cable pull
   - id: wifi_recovery_interval
     interval: 10min
     then:
@@ -330,14 +329,13 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  # True when WiFi networks come from YAML rather than from saved provisioning. Globals are
-  # built after wifi adds its YAML networks and before setup() loads saved ones, and an
-  # initializer can't be dropped by a user's on_boot override
   # The wifi_fallback substitution as a bool; false is accepted quoted or unquoted
   - id: wifi_fallback_on
     type: bool
     restore_value: no
     initial_value: 'std::string_view("${wifi_fallback}") != "false" && std::string_view("${wifi_fallback}") != "False"'
+  # True when WiFi networks come from YAML; set in the initializer (after wifi adds YAML
+  # networks, before saved ones load) so a user's on_boot override can't drop it
   - id: wifi_yaml_networks
     type: bool
     restore_value: no
