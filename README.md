@@ -22,7 +22,7 @@ The R_PRO-1 has been designed to fit both in recessed ceiling mounts and wall ga
 
 1. Power the R_PRO-1 from PoE, or from USB-C.
 2. **Ethernet:** plug in the cable; the device gets its address from your network and shows up in Home Assistant.
-3. **WiFi:** connect to the "Apollo R PRO 1 Hotspot" and enter your WiFi credentials (Improv via Bluetooth or USB works too).
+3. **WiFi:** with no Ethernet cable connected (power from USB-C), connect to the "Apollo R PRO 1 Hotspot" and enter your WiFi credentials (Improv via Bluetooth or USB works too). The hotspot and Bluetooth setup are off while Ethernet is connected, and after a wired boot the hotspot can take about a minute to appear.
 4. In Home Assistant, look at discovered devices.
 
 ## Connectivity
