@@ -5,6 +5,8 @@ substitutions:
   stable_manifest_dir: "firmware"
   # "false" keeps WiFi off entirely (Ethernet-only, like the old Ethernet firmware)
   wifi_fallback: "true"
+  # The legacy _ETH shim sets "true" so an upgraded Ethernet unit's first boot is WiFi-silent
+  ethernet_expected_default: "false"
 
 esphome:
   friendly_name: Apollo R_PRO-1
@@ -311,7 +313,7 @@ globals:
   - id: ethernet_expected
     type: bool
     restore_value: yes
-    initial_value: 'false'
+    initial_value: '${ethernet_expected_default}'
   # True once WiFi has ever connected, which gates the WiFi recovery probe
   - id: wifi_provisioned
     type: bool

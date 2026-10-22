@@ -4,6 +4,8 @@
 
 substitutions:
   stable_manifest_dir: "firmware-e"
+  # Keep WiFi off on the first boot after upgrading from the Ethernet-only firmware
+  ethernet_expected_default: "true"
 
 esphome:
   name: "apollo-r-pro-1-eth"
