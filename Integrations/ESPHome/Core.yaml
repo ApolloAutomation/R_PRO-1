@@ -422,7 +422,8 @@ button:
     id: update_firmware
     entity_category: config
     on_press:
-      # Refresh the manifest first so a forced install never starts with an empty URL
+      # Drop the cached URL and refresh, so a forced install never uses an empty or stale manifest
+      - lambda: "const_cast<update::UpdateInfo &>(id(update_http_request).update_info).firmware_url.clear();"
       - component.update: update_http_request
       - wait_until:
           condition:
