@@ -1120,7 +1120,7 @@ text_sensor:
     lambda: |-
       if (id(ethernet_1).is_connected()) return id(eth_ip).state;
       if (!id(wifi_1).is_disabled() && id(wifi_1).is_connected()) return id(wifi_ip).state;
-      return std::string("");
+      return {};
 
   - platform: ethernet_info
     ip_address:
