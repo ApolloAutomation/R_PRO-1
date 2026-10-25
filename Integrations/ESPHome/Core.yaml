@@ -1111,6 +1111,17 @@ text_sensor:
       if (ap) return std::string("Hotspot");
       return std::string("Connecting");
 
+  # Keeps the legacy IP Address entity for existing dashboards; shows the address in use, Ethernet first
+  - platform: template
+    name: "IP Address"
+    id: legacy_ip_address
+    entity_category: "diagnostic"
+    update_interval: 10s
+    lambda: |-
+      if (id(ethernet_1).is_connected()) return id(eth_ip).state;
+      if (!id(wifi_1).is_disabled() && id(wifi_1).is_connected()) return id(wifi_ip).state;
+      return std::string("");
+
   - platform: ethernet_info
     ip_address:
       name: "Ethernet IP Address"

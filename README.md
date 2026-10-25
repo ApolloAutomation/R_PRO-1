@@ -39,7 +39,7 @@ Use the on-device **Network Connection** sensor (Diagnostics) to see which conne
 Existing devices update to the unified firmware through their normal "Firmware Update" entity and keep their current name and Home Assistant entry. After the update:
 
 - The **Firmware Type** select is gone; the device no longer needs it.
-- The **IP Address** sensor is replaced by **Ethernet IP Address** and **WiFi IP Address**, plus the new **Network Connection** sensor. You can delete the old entity in Home Assistant.
+- The **IP Address** sensor stays and shows the address in use (Ethernet first). **Ethernet IP Address**, **WiFi IP Address** and **Network Connection** are new.
 - **SCD40 Automatic Self Calibration** is replaced by **CO2 Auto Calibration**, which starts on. If you had turned self-calibration off, turn it off again. **Combined Presence** is new.
 - A WiFi device gains Ethernet: plug in a cable and traffic moves to it, while WiFi stays joined.
 - An Ethernet device keeps WiFi off while its cable is connected. If Ethernet is lost, or isn't up about a minute after boot, it falls back to WiFi: the network it was set up on before it switched to the Ethernet firmware, if any, or else the open setup hotspot and Improv BLE. The hotspot and Improv turn off again when Ethernet returns; a joined WiFi network stays up alongside. To keep WiFi off entirely, see `wifi_fallback` below.
