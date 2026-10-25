@@ -24,10 +24,14 @@ jobs:
       pull-requests: write
     with:
       device-name: r_pro-1
+      # _ETH/_W are legacy shims over Core.yaml, kept so firmware-e/ and firmware-w/
+      # keep publishing for fielded devices (a Pages deploy replaces the whole site).
       yaml-files: |
+        Integrations/ESPHome/R_PRO-1.yaml
         Integrations/ESPHome/R_PRO-1_ETH.yaml
         Integrations/ESPHome/R_PRO-1_W.yaml
-      firmware-names: "1_ETH:firmware-e,1_W:firmware-w"
+      # Mapping key is the filename text after its last dash.
+      firmware-names: "1:firmware,1_ETH:firmware-e,1_W:firmware-w"
       core-yaml-path: Integrations/ESPHome/Core.yaml
       esphome-version: stable
       # Bypass check if manually triggered with bypass option
