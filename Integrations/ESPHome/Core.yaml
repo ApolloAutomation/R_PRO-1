@@ -323,6 +323,9 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
+  - id: firmware_url_backup
+    type: std::string
+    restore_value: no
   # True once the hotspot has run and been released this boot (it can't relaunch
   # until the next reboot)
   - id: ap_latched
@@ -422,8 +425,12 @@ button:
     id: update_firmware
     entity_category: config
     on_press:
-      # Drop the cached URL and refresh, so a forced install never uses an empty or stale manifest
-      - lambda: "const_cast<update::UpdateInfo &>(id(update_http_request).update_info).firmware_url.clear();"
+      # Set the cached URL aside and refresh, so a forced install never uses an empty or stale
+      # manifest; the URL is put back if the refresh fails
+      - lambda: |-
+          auto &info = const_cast<update::UpdateInfo &>(id(update_http_request).update_info);
+          id(firmware_url_backup) = info.firmware_url;
+          info.firmware_url.clear();
       - component.update: update_http_request
       - wait_until:
           condition:
@@ -435,9 +442,10 @@ button:
           then:
             - lambda: "id(update_http_request).perform(true);"
           else:
+            - lambda: "const_cast<update::UpdateInfo &>(id(update_http_request).update_info).firmware_url = id(firmware_url_backup);"
             - logger.log:
                 level: WARN
-                format: "Firmware Update: no manifest available yet, not starting an install"
+                format: "Firmware Update: manifest refresh failed, not starting an install"
 
 number:
   - platform: ld2450
