@@ -14,8 +14,12 @@ esphome:
   name_add_mac_suffix: true
   # network: priority: (WiFi + Ethernet in one firmware) needs 2026.8
   min_version: 2026.8.0
+  # dns_getserver() for the DNS restore interval
+  includes:
+    - <lwip/dns.h>
   on_boot:
-    - priority: 800
+    # Below 800 so runTest is restored before it's read
+    - priority: 700
       then:
         - if:
             condition:
@@ -244,6 +248,27 @@ interval:
             vTaskSuspend(orphan);
             ESP_LOGW("ethernet", "No W5500 detected; parked the W5500 helper task");
           }
+  # Any DHCP restart wipes lwIP's shared DNS servers
+  # Restore the default interface's copy, as CAST_PRO-1 does
+  - id: dns_restore_interval
+    interval: 16ms
+    then:
+      - lambda: |-
+          esp_netif_t *netif = esp_netif_get_default_netif();
+          if (netif == nullptr || !ip_addr_isany(dns_getserver(0))) return;
+          bool restored = false;
+          for (auto type : {ESP_NETIF_DNS_MAIN, ESP_NETIF_DNS_BACKUP}) {
+            esp_netif_dns_info_t dns{};
+            if (esp_netif_get_dns_info(netif, type, &dns) == ESP_OK && dns.ip.u_addr.ip4.addr != 0) {
+              esp_netif_set_dns_info(netif, type, &dns);
+              restored = true;
+            }
+          }
+          static bool logged = false;
+          if (restored && !logged) {
+            logged = true;
+            ESP_LOGI("network", "DHCP restart cleared DNS; restored the %s servers", esp_netif_get_desc(netif));
+          }
   # Retry a released WiFi while Ethernet is up, so an outage doesn't leave the
   # radio silent until the next cable pull
   - id: wifi_recovery_interval
@@ -266,6 +291,8 @@ esp32:
     type: esp-idf
 
 api:
+  # Don't reboot every 15 min without Home Assistant
+  reboot_timeout: 0s
   actions:
     - action: play_buzzer
       variables:
