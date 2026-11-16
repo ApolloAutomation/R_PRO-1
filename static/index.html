@@ -5,7 +5,7 @@
     <title>Apollo R PRO-1 Installer</title>
     <meta
       name="description"
-      content="Easily allow users to install Apollo R-1 firmware on the web."
+      content="Easily allow users to install Apollo R PRO-1 firmware on the web."
     />
     <meta name="viewport" content="width=device-width" />
     <meta name="color-scheme" content="dark light" />
@@ -83,19 +83,20 @@
       
       <div class="button-row" style="display: flex; justify-content: center; gap: 20px; align-items: center;">
         <div>
-          <p>Wifi Firmware</p>
-          <esp-web-install-button manifest="./firmware-w/manifest.json"></esp-web-install-button>
-        </div>
-        <div>
-          <p>Ethernet Firmware</p>
-          <esp-web-install-button manifest="./firmware-e/manifest.json"></esp-web-install-button>
+          <p>R PRO-1 Firmware (WiFi &amp; Ethernet)</p>
+          <esp-web-install-button manifest="./firmware/manifest.json"></esp-web-install-button>
         </div>
       </div>
-  
+      <p style="text-align: center;">
+        One firmware for both connection types: Ethernet is used whenever a
+        cable is plugged in, and WiFi (with its setup hotspot) takes over
+        automatically when it is not.
+      </p>
+
     </div>
       <div class="footer">
         <a href="https://github.com/ApolloAutomation/R_PRO-1"
-          >Apollo R-1</a
+          >Apollo R PRO-1</a
         > &mdash;
         Installer powered by <a href="https://esphome.github.io/esp-web-tools/">ESP Web Tools</a>.
     </div>

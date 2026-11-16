@@ -1,0 +1,15 @@
+# Apollo R PRO-1 unified firmware: WiFi and Ethernet in one image.
+# Ethernet is used whenever a cable is plugged in; WiFi is the fallback. Device config lives in Core.yaml.
+
+esphome:
+  name: "apollo-r-pro-1"
+  project:
+    name: "ApolloAutomation.R-PRO-1"
+    version: ${version}
+
+dashboard_import:
+  package_import_url: github://ApolloAutomation/R_PRO-1/Integrations/ESPHome/R_PRO-1.yaml
+  import_full_config: false
+
+packages:
+  core: !include Core.yaml
