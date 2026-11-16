@@ -1,8 +1,17 @@
 substitutions:
-  version: "26.10.21.1"
+  version: "26.11.15.1"
+  # Manifest URL bases. Stable = GitHub Pages (main branch builds).
+  # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
   stable_manifest_base: "https://apolloautomation.github.io/R_PRO-1"
-  # Legacy _W/_ETH shims override this so fielded devices keep their manifest URL
+  beta_manifest_base: "https://github.com/ApolloAutomation/R_PRO-1/releases/download/beta-fw"
+  # Legacy _W/_ETH shims override these so fielded devices keep their manifest URLs
   stable_manifest_dir: "firmware"
+  # Must match the manifest-<key>.json names build-beta.yml uploads
+  beta_manifest_key: "standard"
+  ota_stable_manifest: "${stable_manifest_base}/${stable_manifest_dir}/manifest.json"
+  ota_beta_manifest: "${beta_manifest_base}/manifest-${beta_manifest_key}.json"
+  # Bluetooth Proxy switch state on a device with no stored preference yet
+  bluetooth_proxy_restore_mode: RESTORE_DEFAULT_OFF
   # "false" keeps WiFi off entirely (Ethernet-only, like the old Ethernet firmware)
   wifi_fallback: "true"
   # The legacy _ETH shim sets "true" so an upgraded Ethernet unit's first boot is WiFi-silent
@@ -12,8 +21,8 @@ esphome:
   friendly_name: Apollo R_PRO-1
   comment: Apollo R_PRO-1
   name_add_mac_suffix: true
-  # network: priority: (WiFi + Ethernet in one firmware) needs 2026.8
-  min_version: 2026.8.0
+  # improv_ble (renamed from esp32_improv) needs 2026.10
+  min_version: 2026.10.0
   # dns_getserver() for the DNS restore interval
   includes:
     - <lwip/dns.h>
@@ -44,6 +53,21 @@ esphome:
       then:
         # Disable LD2450 Bluetooth by default on boot
         - switch.turn_off: ld2450_bluetooth
+    - priority: -100
+      then:
+        - script.execute: apply_ota_source
+    # Re-apply the Bluetooth Proxy switch after all components set up, so BLE
+    # scanning matches the switch state restored from flash.
+    - priority: -300
+      then:
+        - if:
+            condition:
+              switch.is_on: bluetooth_proxy_switch
+            then:
+              - esp32_ble_tracker.start_scan:
+                  continuous: true
+            else:
+              - esp32_ble_tracker.stop_scan:
     # Ethernet never came up, so bring WiFi back for rejoin or provisioning
     - priority: -100
       then:
@@ -84,6 +108,21 @@ ota:
 
 http_request:
   verify_ssl: true
+  # GitHub release-asset downloads answer with a redirect carrying a
+  # ~3.6 KB Content-Security-Policy header; each header line must fit
+  # this buffer or the request fails with "HTTP_CLIENT: Out of buffer".
+  buffer_size_rx: 5120
+  # The redirect target is a signed URL with a ~850-char query string; the
+  # follow-up request line must fit the TX buffer or esp_http_client_open
+  # fails with "Out of buffer" before sending anything.
+  buffer_size_tx: 2048
+
+esp32_ble_tracker:
+  id: ble_tracker
+  scan_parameters:
+    continuous: true
+
+bluetooth_proxy:
 
 safe_mode:
 
@@ -93,7 +132,7 @@ update:
   - platform: http_request
     id: update_http_request
     name: Firmware Update
-    source: ${stable_manifest_base}/${stable_manifest_dir}/manifest.json
+    source: ${ota_stable_manifest}
 
 # Prefer Ethernet whenever it is connected; ESPHome arbitrates the route
 network:
@@ -220,6 +259,8 @@ wifi:
               then:
                 - script.execute: wifi_release_radio
     - component.update: network_connection
+  # Keeps today's no-reboot on lost Wi-Fi; 2026.11 drops the AP exemption
+  reboot_timeout: 0s
   ap:
     ssid: "Apollo R PRO 1 Hotspot"
 
@@ -228,7 +269,7 @@ captive_portal:
 
 improv_serial:
 
-esp32_improv:
+improv_ble:
   id: esp32_improv_1
   authorizer: none
 
@@ -291,6 +332,7 @@ esp32:
     type: esp-idf
 
 api:
+  encryption:
   # Don't reboot every 15 min without Home Assistant
   reboot_timeout: 0s
   actions:
@@ -450,15 +492,18 @@ button:
   - platform: template
     name: "Firmware Update"
     id: update_firmware
+    icon: mdi:cloud-download
     entity_category: config
     on_press:
-      # Set the cached URL aside and refresh, so a forced install never uses an empty or stale
-      # manifest; the URL is put back if the refresh fails
+      - logger.log: "Applying firmware update for the selected channel"
+      # Set the cached URL aside and refresh from the selected channel, so a forced install
+      # never uses an empty or stale manifest; the URL is put back if the refresh fails
       - lambda: |-
           auto &info = const_cast<update::UpdateInfo &>(id(update_http_request).update_info);
           id(firmware_url_backup) = info.firmware_url;
           info.firmware_url.clear();
-      - component.update: update_http_request
+      - script.execute: apply_ota_source
+      - script.wait: apply_ota_source
       - wait_until:
           condition:
             lambda: "return !id(update_http_request).update_info.firmware_url.empty();"
@@ -695,10 +740,11 @@ binary_sensor:
     on_release:
       then:
         - lambda: |-
-            if (millis() - id(button_press_timestamp) >= 8000) {
+            // Tap: status + self-test; 3-10s: nothing (mains powered, no Prevent Sleep); 10s+: factory reset
+            if (millis() - id(button_press_timestamp) >= 10000) {
               id(factory_reset_switch).turn_on();
             }
-            else if (millis() - id(button_press_timestamp) >= 1000) {
+            else if (millis() - id(button_press_timestamp) < 3000) {
               // StatusCheck
               id(statusCheck).execute();
               delay(3000);
@@ -1041,6 +1087,21 @@ select:
       name: "LD2450 Zone Type"
       id: ld2450_zone_type
 
+  - platform: template
+    name: "Firmware Channel"
+    id: firmware_channel
+    icon: mdi:source-branch
+    entity_category: "config"
+    optimistic: true
+    restore_value: true
+    options:
+      - "Stable"
+      - "Beta"
+    initial_option: "Stable"
+    on_value:
+      then:
+        - script.execute: apply_ota_source
+
 switch:
   - platform: factory_reset
     id: factory_reset_switch
@@ -1086,6 +1147,19 @@ switch:
         - script.execute:
             id: setCo2AutoCalibration
             enable: false
+
+  - platform: template
+    name: "Bluetooth Proxy"
+    id: bluetooth_proxy_switch
+    icon: mdi:bluetooth
+    entity_category: "config"
+    restore_mode: ${bluetooth_proxy_restore_mode}
+    optimistic: true
+    on_turn_on:
+      - esp32_ble_tracker.start_scan:
+          continuous: true
+    on_turn_off:
+      - esp32_ble_tracker.stop_scan:
 
 text_sensor:
   - platform: ld2450
@@ -1193,6 +1267,18 @@ light:
           max_brightness: 100%
 
 script:
+  - id: apply_ota_source
+    # Sets the OTA manifest URL from the Firmware Channel select (Stable/Beta).
+    # The manifests are per-variant (ota_*_manifest substitutions) so the legacy
+    # _W/_ETH builds keep their own manifests.
+    then:
+      - lambda: |-
+          const bool beta = id(firmware_channel).current_option() == "Beta";
+          const char *url = beta ? "${ota_beta_manifest}" : "${ota_stable_manifest}";
+          ESP_LOGI("firmware", "OTA manifest set to: %s", url);
+          id(update_http_request).set_source_url(url);
+      - component.update: update_http_request
+
   - id: check_for_updates
     # One manifest check per boot, on whichever interface connects first
     then:
@@ -1297,6 +1383,28 @@ script:
                 red: 0%
                 green: 0%
                 blue: 100%
+          else:
+            - if:
+                condition:
+                  or:
+                    - ethernet.connected:
+                    - wifi.connected:
+                then:
+                  - logger.log: "Apollo Automation: Connected To Network"
+                  - light.turn_on:
+                      id: rgb_light
+                      brightness: 100%
+                      red: 0%
+                      green: 100%
+                      blue: 0%
+                else:
+                  - logger.log: "Apollo Automation: Not Connected To Network"
+                  - light.turn_on:
+                      id: rgb_light
+                      brightness: 100%
+                      red: 100%
+                      green: 100%
+                      blue: 0%
       - delay: 5s
       - light.turn_off: rgb_light
   

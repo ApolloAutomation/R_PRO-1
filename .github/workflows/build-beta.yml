@@ -1,0 +1,117 @@
+name: Build and Publish Beta
+
+# Builds R_PRO-1 firmware from the beta branch and publishes it as assets on a
+# rolling "beta-fw" pre-release. The on-device "Firmware Channel" select points
+# OTA updates at these assets. Stable firmware is built/published separately
+# by build.yml (push to main -> GitHub Pages).
+
+on:
+  push:
+    branches: [beta]
+    paths:
+      - 'Integrations/ESPHome/**'
+  workflow_dispatch:
+
+# Least privilege: read-only by default; only publish-beta is elevated to write.
+permissions:
+  contents: read
+
+jobs:
+  version:
+    name: Read version
+    runs-on: ubuntu-latest
+    outputs:
+      v: ${{ steps.read.outputs.v }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - id: read
+        run: |
+          v=$(awk '/substitutions:/ {f=1} f && /version:/ {print $2; exit}' \
+            Integrations/ESPHome/Core.yaml | tr -d '"')
+          echo "v=$v" >> "$GITHUB_OUTPUT"
+          echo "Beta version: $v"
+
+  build:
+    name: Build ${{ matrix.name }}
+    needs: version
+    strategy:
+      matrix:
+        include:
+          # Same variants as build.yml: the unified image plus the legacy _ETH/_W
+          # shims, so every device that tracks a stable manifest has a beta one.
+          - { yaml: Integrations/ESPHome/R_PRO-1.yaml,     name: firmware-standard }
+          - { yaml: Integrations/ESPHome/R_PRO-1_ETH.yaml, name: firmware-e-beta }
+          - { yaml: Integrations/ESPHome/R_PRO-1_W.yaml,   name: firmware-w-beta }
+    uses: esphome/workflows/.github/workflows/build.yml@e1432c7b31fec7d24a13dc192953ebac836ed98a # 2026.10.3
+    with:
+      files: ${{ matrix.yaml }}
+      esphome-version: stable
+      combined-name: ${{ matrix.name }}
+      release-version: ${{ needs.version.outputs.v }}
+
+  publish-beta:
+    name: Publish beta release assets
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download firmware artifacts
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: fw
+          pattern: firmware*
+
+      - name: Ensure rolling 'beta-fw' pre-release exists
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view beta-fw -R "${{ github.repository }}" >/dev/null 2>&1 \
+            || gh release create beta-fw -R "${{ github.repository }}" \
+                 --prerelease --title "Beta (rolling)" \
+                 --notes "Latest R_PRO-1 beta firmware. Auto-updated on every push to the beta branch."
+
+      - name: Rewrite manifests to absolute URLs and upload assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BASE="https://github.com/${{ github.repository }}/releases/download/beta-fw"
+          # Keys must match beta_manifest_key in Core.yaml and the _ETH/_W shims.
+          declare -A DIRS=( [standard]=firmware-standard [e]=firmware-e-beta [w]=firmware-w-beta )
+          for v in standard e w; do
+            src="fw/${DIRS[$v]}"
+            man=$(find "$src" -name manifest.json | head -1)
+            if [ -z "$man" ]; then
+              echo "::error::manifest.json not found for ${DIRS[$v]}"
+              exit 1
+            fi
+            # Release assets are a flat namespace: prefix per variant.
+            find "$src" -name '*.bin' | while read -r bin; do
+              mv "$bin" "$(dirname "$bin")/$v-$(basename "$bin")"
+            done
+            echo "Rewriting $man"
+            # Make ota.path and parts[].path absolute release-asset URLs so the
+            # device never has to resolve a relative path against a redirect.
+            jq --arg base "$BASE" --arg pfx "$v-" '
+              .builds[0].ota.path = ($base + "/" + $pfx + (.builds[0].ota.path | sub(".*/"; "")))
+              | .builds[0].parts |= map(.path = ($base + "/" + $pfx + (.path | sub(".*/"; ""))))
+            ' "$man" > "manifest-$v.json"
+            cat "manifest-$v.json"
+            gh release upload beta-fw "manifest-$v.json" -R "${{ github.repository }}" --clobber
+            find "$src" -name '*.bin' -print -exec \
+              gh release upload beta-fw {} -R "${{ github.repository }}" --clobber \;
+          done
+          echo "Beta assets published."
+
+      - name: Point beta-fw tag at the built commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # gh release create tags default-branch HEAD, and uploads never move
+          # the tag, so without this the release's source commit drifts away
+          # from the assets actually published.
+          gh api -X PATCH "repos/${{ github.repository }}/git/refs/tags/beta-fw" \
+            -f sha="${{ github.sha }}" -F force=true
+          echo "beta-fw -> ${{ github.sha }}"
