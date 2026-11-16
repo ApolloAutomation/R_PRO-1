@@ -4,6 +4,7 @@
 
 substitutions:
   stable_manifest_dir: "firmware-w"
+  beta_manifest_key: "w"
 
 esphome:
   name: "apollo-r-pro-1-w"
