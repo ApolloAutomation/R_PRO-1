@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.11.15.1"
+  version: "26.11.16.1"
   # Manifest URL bases. Stable = GitHub Pages (main branch builds).
   # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
   stable_manifest_base: "https://apolloautomation.github.io/R_PRO-1"
@@ -739,19 +739,26 @@ binary_sensor:
             id(button_press_timestamp) = millis();
     on_release:
       then:
-        - lambda: |-
-            // Tap: status + self-test; 3-10s: nothing (mains powered, no Prevent Sleep); 10s+: factory reset
-            if (millis() - id(button_press_timestamp) >= 10000) {
-              id(factory_reset_switch).turn_on();
-            }
-            else if (millis() - id(button_press_timestamp) < 3000) {
-              // StatusCheck
-              id(statusCheck).execute();
-              delay(3000);
-              id(testCycleCount) = 0;
-              id(runTest) = true;
-              id(testScript).execute();
-            }
+        # Tap: status + self-test; 3-10s: nothing (mains powered, no Prevent Sleep); 10s+: factory reset
+        - if:
+            condition:
+              lambda: "return millis() - id(button_press_timestamp) >= 10000;"
+            then:
+              - switch.turn_on: factory_reset_switch
+            else:
+              - if:
+                  condition:
+                    lambda: "return millis() - id(button_press_timestamp) < 3000;"
+                  then:
+                    # Let the status colour run its full window before the self-test takes the LED
+                    - script.execute: statusCheck
+                    - script.wait: statusCheck
+                    # A non-blocking wait; delay() in a lambda would stall the main loop
+                    - delay: 3s
+                    - lambda: |-
+                        id(testCycleCount) = 0;
+                        id(runTest) = true;
+                    - script.execute: testScript
   - platform: gpio
     name: "LD2412 Out Pin"
     pin: GPIO38
