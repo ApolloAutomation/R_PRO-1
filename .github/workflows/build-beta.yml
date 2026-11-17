@@ -1,0 +1,29 @@
+name: Build and Publish Beta
+
+on:
+  push:
+    branches: [beta]
+    paths:
+      - 'Integrations/ESPHome/**'
+      # A push that only changes this file must rebuild too
+      - '.github/workflows/build-beta.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-beta-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  beta:
+    permissions:
+      contents: write
+    uses: ApolloAutomation/Workflows/.github/workflows/build-beta.yml@main
+    with:
+      # Keys must match beta_manifest_key in Core.yaml and the _ETH/_W shims.
+      variants: >-
+        [{"key": "standard", "yaml": "Integrations/ESPHome/R_PRO-1.yaml",     "name": "firmware-standard"},
+         {"key": "e",        "yaml": "Integrations/ESPHome/R_PRO-1_ETH.yaml", "name": "firmware-e-beta"},
+         {"key": "w",        "yaml": "Integrations/ESPHome/R_PRO-1_W.yaml",   "name": "firmware-w-beta"}]
