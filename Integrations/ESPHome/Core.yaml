@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.11.16.1"
+  version: "26.11.17.1"
   # Manifest URL bases. Stable = GitHub Pages (main branch builds).
   # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
   stable_manifest_base: "https://apolloautomation.github.io/R_PRO-1"
