@@ -417,6 +417,8 @@ rtttl:
 web_server:
   port: 80
   version: 3
+  # No firmware upload from the device page; the setup hotspot still allows it
+  ota: false
 
 i2c:
   sda: GPIO41
