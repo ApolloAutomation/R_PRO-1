@@ -30,6 +30,7 @@ The R_PRO-1 has been designed to fit both in recessed ceiling mounts and wall ga
 One firmware covers both WiFi and Ethernet, so there is no need to pick a variant or reflash to switch:
 
 - **Ethernet plugged in:** traffic moves to Ethernet. If the device is also joined to your WiFi, that connection stays up alongside, so the device stays online if the cable is unplugged. Home Assistant keeps using the address it found the device on; if that is the Ethernet address, it can show the device unavailable while the cable is out. If WiFi has no network to join, it turns off; the setup hotspot is never active while Ethernet is connected.
+- **Ethernet Only:** enable this switch on the device page (Configuration, disabled by default) and turn it on to switch WiFi off whenever Ethernet is connected. WiFi still comes back if the cable is unplugged. If Home Assistant added the device by its WiFi address, it may show it unavailable afterwards; reload the integration or change the device's host to its wired address.
 - **No Ethernet:** WiFi works as usual. The device rejoins its saved network, or opens the hotspot for setup if none is configured. Its log then shows an Ethernet "Connecting failed" warning every 15 seconds, which is normal.
 
 Use the on-device **Network Connection** sensor (Diagnostics) to see which connection is active.

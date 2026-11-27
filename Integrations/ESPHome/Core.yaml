@@ -1,5 +1,5 @@
 substitutions:
-  version: "26.11.17.1"
+  version: "26.11.27.1"
   # Manifest URL bases. Stable = GitHub Pages (main branch builds).
   # Beta = rolling "beta-fw" pre-release assets (beta branch builds).
   stable_manifest_base: "https://apolloautomation.github.io/R_PRO-1"
@@ -152,13 +152,16 @@ ethernet:
   on_connect:
     # Keep WiFi up alongside Ethernet so Home Assistant's connection to the
     # WiFi address survives; release it only when WiFi has no network to offer
+    # or Ethernet Only is on
     - if:
         condition:
           wifi.enabled:
         then:
           - if:
               condition:
-                wifi.ap_active:
+                or:
+                  - wifi.ap_active:
+                  - switch.is_on: ethernet_only_switch
               then:
                 # Fallback hotspot is broadcasting: WiFi has no network
                 - script.execute: wifi_release_radio
@@ -180,7 +183,11 @@ ethernet:
                       # Leave WiFi alone if the cable vanished during the wait
                       - if:
                           condition:
-                            ethernet.connected:
+                            and:
+                              - ethernet.connected:
+                              # A user-started rejoin owns WiFi
+                              - not:
+                                  script.is_running: wifi_recovery_probe
                           then:
                             - script.execute: wifi_release_radio
         else:
@@ -256,6 +263,8 @@ wifi:
                   - not:
                       wifi.connected:
                   - ethernet.connected:
+                  - not:
+                      script.is_running: wifi_recovery_probe
               then:
                 - script.execute: wifi_release_radio
     - component.update: network_connection
@@ -322,6 +331,7 @@ interval:
               - not:
                   wifi.enabled:
               - lambda: "return id(wifi_provisioned) && id(wifi_fallback_on);"
+              - switch.is_off: ethernet_only_switch
           then:
             - script.execute: wifi_recovery_probe
 
@@ -1143,6 +1153,36 @@ switch:
           continuous: true
     on_turn_off:
       - esp32_ble_tracker.stop_scan:
+
+  # Turns WiFi off while Ethernet is connected
+  - platform: template
+    name: "Ethernet Only"
+    id: ethernet_only_switch
+    icon: mdi:ethernet
+    entity_category: "config"
+    disabled_by_default: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: true
+    on_turn_on:
+      - script.stop: wifi_recovery_probe
+      - if:
+          condition:
+            and:
+              - ethernet.connected:
+              - wifi.enabled:
+          then:
+            - script.execute: wifi_release_radio
+    on_turn_off:
+      # Rejoin WiFi alongside Ethernet
+      - if:
+          condition:
+            and:
+              - ethernet.connected:
+              - not:
+                  wifi.enabled:
+              - lambda: "return id(wifi_provisioned) && id(wifi_fallback_on);"
+          then:
+            - script.execute: wifi_recovery_probe
 
 text_sensor:
   - platform: ld2450
